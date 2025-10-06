@@ -1,0 +1,31 @@
+{
+  "name": "nlp-therapy-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vanilla JS Node service for NLP Therapy AI using OpenRouter",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "dependencies": {
+    "axios": "1.7.7",
+    "express": "4.19.2",
+    "js-yaml": "4.1.0",
+    "dotenv": "16.4.5"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "supertest": "^6.3.3",
+    "@vitest/coverage-v8": "^1.0.0"
+  }
+}
+
+
