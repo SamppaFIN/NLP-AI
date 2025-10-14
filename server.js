@@ -7,6 +7,31 @@ import yaml from 'js-yaml';
 import { fileURLToPath } from 'url';
 import { SessionManager, SessionState } from './src/session.js';
 
+// Simple in-memory rate limiter
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute per IP
+
+function rateLimit(req, res, next) {
+  const ip = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  
+  if (!rateLimitMap.has(ip)) {
+    rateLimitMap.set(ip, []);
+  }
+  
+  const requests = rateLimitMap.get(ip);
+  const validRequests = requests.filter(time => now - time < RATE_LIMIT_WINDOW);
+  
+  if (validRequests.length >= RATE_LIMIT_MAX_REQUESTS) {
+    return res.status(429).json({ error: 'Too many requests, please try again later' });
+  }
+  
+  validRequests.push(now);
+  rateLimitMap.set(ip, validRequests);
+  next();
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -33,12 +58,39 @@ function routeModelForTask(policy, task) {
 }
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Add size limit
+app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Add URL encoding support
 const sessions = new SessionManager();
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Add CORS middleware for security
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGINS || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
 app.get('/healthz', (req, res) => {
-  res.json({ ok: true });
+  const health = {
+    ok: true,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    version: process.env.npm_package_version || '0.1.0',
+    environment: process.env.NODE_ENV || 'development'
+  };
+  res.json(health);
 });
 
 app.get('/', (req, res) => {
@@ -82,9 +134,28 @@ app.get('/api/session/:id', (req, res) => {
   res.json(s.getStatus());
 });
 
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', rateLimit, async (req, res) => {
   const { messages = [], task = null, model: explicitModel = null, sessionId = null } = req.body || {};
-  const apiKey = process.env.OPENROUTER_API_KEY || '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';
+  
+  // Input validation
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: 'Messages array is required and must not be empty' });
+  }
+  
+  // Validate message structure
+  for (const msg of messages) {
+    if (!msg.role || !msg.content || typeof msg.content !== 'string') {
+      return res.status(400).json({ error: 'Each message must have role and content fields' });
+    }
+    if (!['system', 'user', 'assistant'].includes(msg.role)) {
+      return res.status(400).json({ error: 'Message role must be system, user, or assistant' });
+    }
+    if (msg.content.length > 10000) {
+      return res.status(400).json({ error: 'Message content too long (max 10000 characters)' });
+    }
+  }
+  
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured' });
 
   const base = (process.env.OPENROUTER_BASE || 'https://openrouter.ai/api/v1').replace(/\/$/, '');
@@ -118,15 +189,21 @@ app.post('/api/chat', async (req, res) => {
     }
     res.json({ content, model: resolvedModel, sessionId });
   } catch (err) {
+    console.error('Chat API error:', err);
     const status = err?.response?.status || 502;
-    res.status(status).json({ error: 'Upstream error', detail: err?.message || String(err) });
+    const errorMessage = err?.response?.data?.error?.message || err?.message || 'Unknown error';
+    res.status(status).json({ 
+      error: 'Upstream error', 
+      detail: errorMessage,
+      timestamp: new Date().toISOString()
+    });
   }
 });
 
 // Generate session summary using OpenRouter
 app.post('/api/summary', async (req, res) => {
   const { sessionId } = req.body || {};
-  const apiKey = process.env.OPENROUTER_API_KEY || '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';
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured' });
   if (!sessionId) return res.status(400).json({ error: 'sessionId is required' });
 
