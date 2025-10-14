@@ -167,6 +167,16 @@
       line-height: 1.6;
     }
     
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(100%); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes slideOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(100%); }
+    }
+    
     @media (max-width: 768px) {
       .session-flow {
         padding: var(--aurora-space-md);
@@ -190,7 +200,20 @@
     <div id="sessionScreen" class="session-flow">
       <!-- Header -->
       <div class="therapy-avatar" id="therapyAvatar">
-        🌸
+        <svg width="120" height="120" viewBox="0 0 120 120" id="therapistSvg">
+          <!-- Face -->
+          <circle cx="60" cy="45" r="22" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+          <!-- Body -->
+          <rect x="30" y="67" width="60" height="35" rx="17" fill="#a7f3d0" stroke="#10b981" stroke-width="2"/>
+          <!-- Eyes -->
+          <circle id="leftEye" cx="52" cy="42" r="3" fill="#111827"/>
+          <circle id="rightEye" cx="68" cy="42" r="3" fill="#111827"/>
+          <!-- Mouth -->
+          <circle id="mouth" cx="60" cy="52" r="3" fill="#111827"/>
+          <!-- Eyebrows -->
+          <path id="leftEyebrow" d="M47 35 Q52 33 57 35" stroke="#111827" stroke-width="2" fill="none"/>
+          <path id="rightEyebrow" d="M63 35 Q68 33 73 35" stroke="#111827" stroke-width="2" fill="none"/>
+        </svg>
       </div>
       
       <h1 style="color: var(--aurora-white); text-align: center; margin-bottom: var(--aurora-space-lg);">
@@ -212,6 +235,22 @@
         <button id="endBtn" class="aurora-btn aurora-btn-accent hidden">
           ✅ Lopeta
         </button>
+      </div>
+      
+      <!-- Voice Controls -->
+      <div id="voiceControls" class="session-controls hidden">
+        <button id="micBtn" class="aurora-btn aurora-btn-primary">
+          🎤 Mikki: Pois
+        </button>
+        <button id="voiceBtn" class="aurora-btn aurora-btn-secondary">
+          🔊 Ääni: Päällä
+        </button>
+        <select id="personaSelect" class="aurora-select" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: var(--aurora-radius-md); padding: 8px 12px;">
+          <option value="empathetic">Myötätuntoinen Terapeutti</option>
+          <option value="gentle">Lempeä Ohjaaja</option>
+          <option value="wise">Viisas Mentor</option>
+          <option value="supportive">Tukeva Ystävä</option>
+        </select>
       </div>
       
       <!-- Question Card -->
@@ -293,6 +332,118 @@
     let totalQuestions = 10;
     let sessionStarted = false;
     let currentSummary = '';
+    let micOn = false;
+    let voiceOn = true;
+    let recognition = null;
+    let currentPersona = 'empathetic';
+    
+    // Voice and Speech Recognition
+    function initSpeechRecognition() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        console.log('Speech recognition not supported');
+        return null;
+      }
+      
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'fi-FI';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      
+      recognition.onstart = () => {
+        micOn = true;
+        elements.micBtn.textContent = '🎤 Mikki: Päällä';
+        elements.micBtn.classList.add('aurora-btn-accent');
+        setTherapistExpression('listening');
+      };
+      
+      recognition.onend = () => {
+        micOn = false;
+        elements.micBtn.textContent = '🎤 Mikki: Pois';
+        elements.micBtn.classList.remove('aurora-btn-accent');
+        setTherapistExpression('neutral');
+      };
+      
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        elements.userInput.value = transcript;
+        setTherapistExpression('thinking');
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        micOn = false;
+        elements.micBtn.textContent = '🎤 Mikki: Pois';
+        elements.micBtn.classList.remove('aurora-btn-accent');
+      };
+      
+      return recognition;
+    }
+    
+    // Therapist expressions
+    function setTherapistExpression(emotion) {
+      const leftEye = document.getElementById('leftEye');
+      const rightEye = document.getElementById('rightEye');
+      const mouth = document.getElementById('mouth');
+      const leftEyebrow = document.getElementById('leftEyebrow');
+      const rightEyebrow = document.getElementById('rightEyebrow');
+      
+      if (!leftEye || !rightEye || !mouth) return;
+      
+      switch(emotion) {
+        case 'listening':
+          leftEyebrow.setAttribute('d', 'M47 33 Q52 31 57 33');
+          rightEyebrow.setAttribute('d', 'M63 33 Q68 31 73 33');
+          mouth.setAttribute('r', '2');
+          break;
+        case 'thinking':
+          leftEyebrow.setAttribute('d', 'M47 37 Q52 35 57 37');
+          rightEyebrow.setAttribute('d', 'M63 37 Q68 35 73 37');
+          mouth.setAttribute('r', '2');
+          break;
+        case 'empathetic':
+          leftEyebrow.setAttribute('d', 'M47 33 Q52 32 57 33');
+          rightEyebrow.setAttribute('d', 'M63 33 Q68 32 73 33');
+          mouth.setAttribute('r', '4');
+          break;
+        case 'talking':
+          leftEyebrow.setAttribute('d', 'M47 33 Q52 32 57 33');
+          rightEyebrow.setAttribute('d', 'M63 33 Q68 32 73 33');
+          mouth.setAttribute('r', '5');
+          break;
+        default: // neutral
+          leftEyebrow.setAttribute('d', 'M47 35 Q52 33 57 35');
+          rightEyebrow.setAttribute('d', 'M63 35 Q68 33 73 35');
+          mouth.setAttribute('r', '3');
+      }
+    }
+    
+    // Text-to-Speech
+    function speakText(text) {
+      if (!voiceOn) return;
+      
+      if (micOn && recognition) {
+        recognition.stop();
+      }
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'fi-FI';
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      
+      utterance.onstart = () => {
+        setTherapistExpression('talking');
+      };
+      
+      utterance.onend = () => {
+        setTherapistExpression('empathetic');
+        if (micOn && recognition) {
+          setTimeout(() => recognition.start(), 500);
+        }
+      };
+      
+      speechSynthesis.speak(utterance);
+    }
     
     // Questions in Finnish
     const questions = [
@@ -308,6 +459,14 @@
       'Minkä aikomuksen asetatte huomiselle?'
     ];
 
+    // Persona system prompts
+    const personaPrompts = {
+      empathetic: 'Olet myötätuntoinen terapeutti. Anna lyhyt, ymmärtävä vastaus (1-2 lausetta) käyttäjän vastaukseen terapiakysymykseen. Älä kysy jatkokysymyksiä, vaan anna tukea ja ymmärrystä.',
+      gentle: 'Olet lempeä ohjaaja. Anna rauhallinen, kannustava vastaus (1-2 lausetta) käyttäjän vastaukseen. Käytä pehmeää kieltä ja anna turvallinen tila.',
+      wise: 'Olet viisas mentor. Anna syvällinen, viisas vastaus (1-2 lausetta) käyttäjän vastaukseen. Tarjoa näkökulmia ja viisautta.',
+      supportive: 'Olet tukeva ystävä. Anna lämmittävä, kannustava vastaus (1-2 lausetta) käyttäjän vastaukseen. Näytä että kuulet ja ymmärrät.'
+    };
+
     // DOM elements
     const elements = {
       sessionScreen: document.getElementById('sessionScreen'),
@@ -315,6 +474,10 @@
       startSessionBtn: document.getElementById('startSessionBtn'),
       pauseBtn: document.getElementById('pauseBtn'),
       endBtn: document.getElementById('endBtn'),
+      voiceControls: document.getElementById('voiceControls'),
+      micBtn: document.getElementById('micBtn'),
+      voiceBtn: document.getElementById('voiceBtn'),
+      personaSelect: document.getElementById('personaSelect'),
       questionCard: document.getElementById('questionCard'),
       questionText: document.getElementById('questionText'),
       progressIndicator: document.getElementById('progressIndicator'),
@@ -373,13 +536,29 @@
 
     // Show notification
     function showNotification(message, type = 'info') {
-      // Create toast notification using Aurora UI
-      const toast = aurora.createComponent('toast', {
-        message: message,
-        type: type,
-        duration: 3000
-      });
-      document.body.appendChild(toast);
+      // Create simple notification without Aurora toast
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'var(--aurora-secondary)' : type === 'error' ? 'var(--aurora-accent)' : 'var(--aurora-primary)'};
+        color: white;
+        padding: 12px 16px;
+        border-radius: var(--aurora-radius-md);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        z-index: 1000;
+        font-size: 14px;
+        max-width: 300px;
+        animation: slideIn 0.3s ease-out;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => notification.remove(), 300);
+      }, 3000);
     }
 
     // Start new session
@@ -400,8 +579,12 @@
         elements.startSessionBtn.classList.add('hidden');
         elements.pauseBtn.classList.remove('hidden');
         elements.endBtn.classList.remove('hidden');
+        elements.voiceControls.classList.remove('hidden');
         elements.questionCard.classList.remove('hidden');
         elements.conversationLog.classList.remove('hidden');
+        
+        // Initialize speech recognition
+        initSpeechRecognition();
         
         initProgressIndicator();
         showQuestion();
@@ -423,11 +606,11 @@
         // Add user message to conversation
         addMessage(content, 'user');
         
-        // Get AI response
+        // Get AI response with current persona
         const messages = [
           { 
             role: 'system', 
-            content: 'Olet myötätuntoinen terapeutti. Anna lyhyt, ymmärtävä vastaus (1-2 lausetta) käyttäjän vastaukseen terapiakysymykseen. Älä kysy jatkokysymyksiä, vaan anna tukea ja ymmärrystä.' 
+            content: personaPrompts[currentPersona]
           },
           { 
             role: 'user', 
@@ -445,6 +628,10 @@
         
         if (data.content) {
           addMessage(data.content, 'assistant');
+          
+          // Speak the response
+          speakText(data.content);
+          
           currentQuestion++;
           
           if (currentQuestion >= totalQuestions) {
@@ -537,19 +724,29 @@
         await fetch(`/api/session/${sessionId}/end`, { method: 'POST' });
       }
       
+      // Stop speech recognition and synthesis
+      if (recognition) recognition.stop();
+      speechSynthesis.cancel();
+      
       // Reset UI
       sessionStarted = false;
       sessionId = null;
       currentQuestion = 0;
+      micOn = false;
       
       elements.startSessionBtn.classList.remove('hidden');
       elements.pauseBtn.classList.add('hidden');
       elements.endBtn.classList.add('hidden');
+      elements.voiceControls.classList.add('hidden');
       elements.questionCard.classList.add('hidden');
       elements.conversationLog.classList.add('hidden');
       elements.summaryScreen.classList.add('hidden');
       
       elements.messagesContainer.innerHTML = '';
+      elements.micBtn.textContent = '🎤 Mikki: Pois';
+      elements.micBtn.classList.remove('aurora-btn-accent');
+      
+      setTherapistExpression('neutral');
       
       showNotification('Sessio päättynyt.', 'info');
     }
@@ -565,6 +762,32 @@
       elements.summaryScreen.classList.add('hidden');
       elements.sessionScreen.classList.remove('hidden');
       startSession();
+    });
+    
+    // Voice controls
+    elements.micBtn.addEventListener('click', () => {
+      if (!recognition) {
+        showNotification('Puheentunnistus ei ole tuettu tässä selaimessa.', 'error');
+        return;
+      }
+      
+      if (micOn) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    });
+    
+    elements.voiceBtn.addEventListener('click', () => {
+      voiceOn = !voiceOn;
+      elements.voiceBtn.textContent = voiceOn ? '🔊 Ääni: Päällä' : '🔇 Ääni: Pois';
+      elements.voiceBtn.classList.toggle('aurora-btn-secondary', voiceOn);
+      elements.voiceBtn.classList.toggle('aurora-btn-accent', !voiceOn);
+    });
+    
+    elements.personaSelect.addEventListener('change', (e) => {
+      currentPersona = e.target.value;
+      showNotification(`Persona vaihdettu: ${e.target.options[e.target.selectedIndex].text}`, 'info');
     });
 
     // Enter key to send message
@@ -583,8 +806,12 @@
     aurora.applyTechnique('magnetic-buttons', elements.sendBtn);
     aurora.applyTechnique('magnetic-buttons', elements.skipBtn);
     aurora.applyTechnique('magnetic-buttons', elements.nextBtn);
+    aurora.applyTechnique('magnetic-buttons', elements.micBtn);
+    aurora.applyTechnique('magnetic-buttons', elements.voiceBtn);
+    aurora.applyTechnique('magnetic-buttons', elements.pauseBtn);
+    aurora.applyTechnique('magnetic-buttons', elements.endBtn);
     
-    console.log('🌸 Kalle Kotipsykiatri initialized with Aurora UI');
+    console.log('🌸 Kalle Kotipsykiatri initialized with Aurora UI - Voice & Persona features enabled');
   </script>
 </body>
 </html>
