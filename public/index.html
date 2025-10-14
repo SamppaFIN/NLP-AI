@@ -1,987 +1,590 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>NLP Therapy AI</title>
-    <style>
-      :root { --bg: #fefefe; --text: #1f2937; --accent: #3b82f6; --success: #10b981; --warning: #f59e0b; --error: #ef4444; --surface: #f8fafc; --border: #e2e8f0; }
-      @media (prefers-color-scheme: dark) { :root { --bg: #0f172a; --text: #f1f5f9; --surface: #1e293b; --border: #334155; } }
-      * { box-sizing: border-box; }
-      body { 
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
-        margin: 0; 
-        padding: 16px; 
-        background: var(--bg); 
-        color: var(--text); 
-        line-height: 1.6;
-        position: relative;
-        overflow-x: hidden;
+<html lang="fi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kalle Kotipsykiatri - Consciousness-Aware Therapy AI</title>
+  
+  <!-- Aurora UI Library -->
+  <link rel="stylesheet" href="../../Components/aurora-ui-standalone/aurora-ui-library.css">
+  <script src="../../Components/aurora-ui-standalone/aurora-ui-library.js"></script>
+  
+  <style>
+    /* Custom therapy-specific styles */
+    .therapy-container {
+      min-height: 100vh;
+      background: var(--aurora-gradient-cosmic);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .therapy-container::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(74, 158, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+      z-index: -1;
+      animation: cosmicFlow 20s ease-in-out infinite;
+    }
+    
+    @keyframes cosmicFlow {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(-20px, -20px) rotate(1deg); }
+    }
+    
+    .session-flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--aurora-space-lg);
+      padding: var(--aurora-space-xl);
+    }
+    
+    .therapy-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: var(--aurora-gradient-aurora);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      box-shadow: 0 8px 32px rgba(74, 158, 255, 0.3);
+      animation: gentlePulse 3s ease-in-out infinite;
+    }
+    
+    @keyframes gentlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .question-card {
+      max-width: 600px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--aurora-radius-lg);
+      padding: var(--aurora-space-xl);
+      text-align: center;
+    }
+    
+    .question-text {
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--aurora-white);
+      margin-bottom: var(--aurora-space-lg);
+      line-height: 1.6;
+    }
+    
+    .progress-indicator {
+      display: flex;
+      justify-content: center;
+      gap: var(--aurora-space-sm);
+      margin-bottom: var(--aurora-space-lg);
+    }
+    
+    .progress-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+    
+    .progress-dot.active {
+      background: var(--aurora-secondary);
+      box-shadow: 0 0 20px var(--aurora-secondary);
+    }
+    
+    .progress-dot.completed {
+      background: var(--aurora-primary);
+    }
+    
+    .input-section {
+      max-width: 600px;
+      width: 100%;
+    }
+    
+    .conversation-log {
+      max-width: 800px;
+      width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--aurora-radius-md);
+      padding: var(--aurora-space-md);
+      margin-top: var(--aurora-space-lg);
+    }
+    
+    .message {
+      margin-bottom: var(--aurora-space-md);
+      padding: var(--aurora-space-md);
+      border-radius: var(--aurora-radius-md);
+    }
+    
+    .message.user {
+      background: rgba(74, 158, 255, 0.2);
+      margin-left: 20%;
+    }
+    
+    .message.assistant {
+      background: rgba(0, 255, 136, 0.2);
+      margin-right: 20%;
+    }
+    
+    .session-controls {
+      display: flex;
+      gap: var(--aurora-space-md);
+      justify-content: center;
+      margin-top: var(--aurora-space-lg);
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    .summary-screen {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .summary-content {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border-radius: var(--aurora-radius-lg);
+      padding: var(--aurora-space-xl);
+      margin: var(--aurora-space-lg) 0;
+      text-align: left;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+    
+    @media (max-width: 768px) {
+      .session-flow {
+        padding: var(--aurora-space-md);
       }
-      body::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: 
-          radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
-          radial-gradient(circle at 40% 40%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
-        z-index: -2;
+      
+      .question-text {
+        font-size: 1.25rem;
       }
-      body::after {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: 
-          url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233b82f6' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        animation: sacredGeometry 20s linear infinite;
-        z-index: -1;
+      
+      .therapy-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
       }
-      @keyframes sacredGeometry {
-        0% { transform: translate(0, 0) rotate(0deg); }
-        100% { transform: translate(-60px, -60px) rotate(360deg); }
-      }
-      .container { max-width: 600px; margin: 0 auto; }
-      .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0; }
-      .col { display: flex; flex-direction: column; gap: 8px; }
-      .status { display: flex; gap: 12px; margin: 12px 0; flex-wrap: wrap; }
-      .pill { 
-        padding: 8px 12px; 
-        border-radius: 999px; 
-        background: var(--surface); 
-        border: 1px solid var(--border); 
-        font-size: 0.875rem;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      }
-      .card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 16px;
-        margin: 16px 0;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-      }
-      .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-      }
-      .btn { padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 1rem; cursor: pointer; transition: all 0.2s; min-height: 44px; }
-      .btn:active { transform: scale(0.98); }
-      .magnetic { 
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-      }
-      .magnetic:hover { 
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-      }
-      .magnetic::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        transition: left 0.5s;
-      }
-      .magnetic:hover::before {
-        left: 100%;
-      }
-      .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
-      .btn-success { background: var(--success); color: white; border-color: var(--success); }
-      .btn-warning { background: var(--warning); color: white; border-color: var(--warning); }
-      .mic-on { background: #ef4444 !important; border-color: #ef4444 !important; color: #fff !important; }
-      .progress { height: 8px; background: var(--border); border-radius: 6px; overflow: hidden; margin: 8px 0; }
-      .progress > div { height: 8px; background: var(--success); width: 0%; transition: width .3s ease; }
-      .icons { display: flex; gap: 8px; align-items: center; }
-      .icon { width: 24px; height: 24px; }
-      .avatar { width: 48px; height: 48px; }
-      .log { white-space: pre-wrap; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 16px; border-radius: 8px; min-height: 120px; font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; font-size: 0.875rem; }
-      .question { font-size: 1.25rem; margin: 16px 0; padding: 16px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); }
-      .input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--bg); color: var(--text); min-height: 44px; }
-      .summary { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; }
-      .settings { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 16px 0; }
-      .toggle { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
-      .toggle input[type="checkbox"] { width: 20px; height: 20px; }
-      .hidden { display: none !important; }
-      .screen { display: none; }
-      .screen.active { display: block; }
-      .project-description { 
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); 
-        padding: 16px; 
-        border-radius: 8px; 
-        margin: 16px 0; 
-        border: 1px solid var(--border);
-        /* Ensure high contrast text on light panel even in dark mode */
-        color: #0f172a;
-      }
-      .project-description h2,
-      .project-description p { color: #0f172a; }
-      .daily-quote {
-        background: rgba(255, 255, 255, 0.8);
-        padding: 12px;
-        border-radius: 6px;
-        margin: 12px 0 0 0;
-        border-left: 4px solid var(--accent);
-        font-style: italic;
-        text-align: center;
-      }
-      .daily-quote p {
-        margin: 0;
-        font-size: 1.1rem;
-        color: #0f172a;
-      }
-      .speak-indicator {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-        animation: pulse 2s infinite;
-        border: none;
-        font-weight: 500;
-        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-        backdrop-filter: blur(10px);
-      }
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
-      }
-      .notification { 
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
-        color: white; 
-        padding: 12px 16px; 
-        border-radius: 8px; 
-        margin: 8px 0; 
-        text-align: center;
-        animation: slideIn 0.3s ease-out;
-      }
-      @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-      @media (max-width: 480px) { .row { gap: 4px; } .btn { padding: 10px 12px; font-size: 0.875rem; } .question { font-size: 1.125rem; } }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1 id="mainTitle">NLP Therapy AI</h1>
-      <div class="project-description"> 
-        <h2 id="appTagline">Your daily therapeutic assistant</h2>
-        <p id="projectDesc">Ilmainen ja yksityinen terapiakeskustelu. Tietosi pysyvät tällä laitteella.</p>
-        <div id="dailyQuote" class="daily-quote">
-          <p id="quoteText">Loading daily inspiration...</p>
+    }
+  </style>
+</head>
+<body>
+  <div class="therapy-container">
+    <!-- Main Session Screen -->
+    <div id="sessionScreen" class="session-flow">
+      <!-- Header -->
+      <div class="therapy-avatar" id="therapyAvatar">
+        🌸
+      </div>
+      
+      <h1 style="color: var(--aurora-white); text-align: center; margin-bottom: var(--aurora-space-lg);">
+        Kalle Kotipsykiatri
+      </h1>
+      
+      <p style="color: rgba(255, 255, 255, 0.8); text-align: center; max-width: 500px;">
+        Tervetuloa henkilökohtaiseen terapiakeskusteluun. Tietosi pysyvät tällä laitteella.
+      </p>
+      
+      <!-- Session Controls -->
+      <div class="session-controls">
+        <button id="startSessionBtn" class="aurora-btn aurora-btn-cosmic">
+          🚀 Aloita Uusi Sessio
+        </button>
+        <button id="pauseBtn" class="aurora-btn aurora-btn-secondary hidden">
+          ⏸️ Tauko
+        </button>
+        <button id="endBtn" class="aurora-btn aurora-btn-accent hidden">
+          ✅ Lopeta
+        </button>
+      </div>
+      
+      <!-- Question Card -->
+      <div id="questionCard" class="question-card hidden">
+        <div class="progress-indicator" id="progressIndicator">
+          <!-- Progress dots will be generated here -->
+        </div>
+        
+        <div class="question-text" id="questionText">
+          Valmistaudutaan ensimmäiseen kysymykseen...
+        </div>
+        
+        <div class="input-section">
+          <div class="aurora-input-group">
+            <textarea 
+              id="userInput" 
+              class="aurora-textarea" 
+              placeholder="Jaa ajatuksiasi vapaasti..."
+              rows="4"
+              style="width: 100%; resize: vertical;"
+            ></textarea>
+          </div>
+          
+          <div style="display: flex; gap: var(--aurora-space-md); justify-content: center; margin-top: var(--aurora-space-md);">
+            <button id="sendBtn" class="aurora-btn aurora-btn-primary">
+              💬 Lähetä Vastaus
+            </button>
+            <button id="skipBtn" class="aurora-btn aurora-btn-secondary">
+              ⏭️ Ohita
+            </button>
+            <button id="nextBtn" class="aurora-btn aurora-btn-success hidden">
+              ➡️ Seuraava
+            </button>
+          </div>
         </div>
       </div>
       
-      <!-- Main Session Screen -->
-      <div id="sessionScreen" class="screen active">
-        <div class="row">
-          <button id="new" class="btn btn-primary magnetic">Uusi Sessio</button>
-          <button id="pause" class="btn btn-warning magnetic">Tauko</button>
-          <button id="end" class="btn magnetic">Lopeta</button>
-          <button id="settingsBtn" class="btn magnetic">⚙️ Asetukset</button>
-        </div>
-        
-        <div class="status">
-          <span class="pill" id="state">tila: -</span>
-          <span class="pill" id="duration">kesto: 0s</span>
-          <span class="pill" id="silence">hiljaisuus: 0s</span>
-        </div>
-        
-        <div class="card">
-          <div class="icons">
-            <svg class="avatar" id="avatar" viewBox="0 0 64 64">
-              <!-- Face -->
-              <circle cx="32" cy="24" r="12" fill="#fde68a" stroke="#f59e0b" stroke-width="1"/>
-              <!-- Body -->
-              <rect x="16" y="36" width="32" height="18" rx="9" fill="#a7f3d0" stroke="#10b981" stroke-width="1"/>
-              <!-- Eyes -->
-              <circle id="leftEye" cx="28" cy="22" r="2" fill="#111827"/>
-              <circle id="rightEye" cx="36" cy="22" r="2" fill="#111827"/>
-              <!-- Mouth -->
-              <circle id="mouth" cx="32" cy="28" r="2" fill="#111827"/>
-              <!-- Eyebrows -->
-              <path id="leftEyebrow" d="M25 18 Q28 16 31 18" stroke="#111827" stroke-width="1.5" fill="none"/>
-              <path id="rightEyebrow" d="M33 18 Q36 16 39 18" stroke="#111827" stroke-width="1.5" fill="none"/>
-            </svg>
-            <button id="mic" class="btn magnetic">🎤 Mikki: Pois</button>
-            <span id="listeningLabel" class="pill hidden">Kuuntelen… ota aikaa.</span>
-            <span id="speakIndicator" class="pill speak-indicator hidden">💬 Voit puhua nyt</span>
-          </div>
-        </div>
-        
-        <div class="progress"><div id="progressbar"></div></div>
-        
-        <div class="card">
-          <div class="question" id="question">Paina Aloita aloittaaksesi.</div>
-          <div class="row">
-            <span class="pill" id="progressText">Kysymys 1 / 10</span>
-            <button id="replay" class="btn magnetic">🔁 Toista</button>
-          </div>
-        </div>
-        
-        <div class="card">
-          <textarea id="input" class="input" rows="3" placeholder="Jaa ajatuksiasi..."></textarea>
-          <div class="row">
-            <button id="send" class="btn btn-primary magnetic">Lähetä</button>
-            <button id="skip" class="btn magnetic">Ohita</button>
-            <button id="next" class="btn btn-success magnetic hidden">Seuraava kysymys</button>
-          </div>
-        </div>
-        
-        <div class="card">
-          <h3>Keskustelu</h3>
-          <div class="log" id="log"></div>
-        </div>
+      <!-- Conversation Log -->
+      <div id="conversationLog" class="conversation-log hidden">
+        <h3 style="color: var(--aurora-white); margin-bottom: var(--aurora-space-md);">Keskustelu</h3>
+        <div id="messagesContainer"></div>
       </div>
-      
-      <!-- Summary Screen -->
-      <div id="summaryScreen" class="screen">
-        <h2 id="summaryTitle">Sessio Yhteenveto</h2>
-        <div class="summary" id="summaryContent">Luodaan henkilökohtaista yhteenvetoa...</div>
-        <div class="row">
-          <button id="downloadSummary" class="btn btn-primary">📥 Lataa</button>
-          <button id="shareSummary" class="btn">📤 Jaa</button>
-          <button id="newSessionFromSummary" class="btn btn-success">Uusi Sessio</button>
+    </div>
+    
+    <!-- Summary Screen -->
+    <div id="summaryScreen" class="session-flow hidden">
+      <div class="summary-screen">
+        <div class="therapy-avatar">✨</div>
+        
+        <h1 style="color: var(--aurora-white);">Sessio Yhteenveto</h1>
+        
+        <div class="summary-content" id="summaryContent">
+          Luodaan henkilökohtaista yhteenvetoa...
         </div>
-      </div>
-      
-      <!-- Settings Screen -->
-      <div id="settingsScreen" class="screen">
-        <h2 id="settingsTitle">Asetukset</h2>
-        <div class="settings">
-          <div class="toggle">
-            <input type="checkbox" id="enableAvatar" checked>
-            <label for="enableAvatar" id="avatarLabel">Ota käyttöön avatar-animaatiot</label>
-          </div>
-          <div class="toggle">
-            <input type="checkbox" id="enableVoice" checked>
-            <label for="enableVoice" id="voiceLabel">Ota käyttöön ääni (TTS/ASR)</label>
-          </div>
-          <div class="toggle">
-            <input type="checkbox" id="enableAmbient" checked>
-            <label for="enableAmbient" id="ambientLabel">Taustamelut</label>
-          </div>
-          <div class="col">
-            <label for="speechRate" id="speechRateLabel">Puheenopeus:</label>
-            <input type="range" id="speechRate" min="0.5" max="2" step="0.1" value="1">
-            <span id="speechRateValue">1.0x</span>
-          </div>
-          <div class="col">
-            <label for="micSensitivity" id="micSensitivityLabel">Mikrofonin herkkyys:</label>
-            <input type="range" id="micSensitivity" min="0.1" max="1" step="0.1" value="0.5">
-            <span id="micSensitivityValue">0.5</span>
-          </div>
-          <div class="col">
-            <label for="language" id="languageLabel">Kieli:</label>
-            <select id="language" class="input">
-              <option value="fi-FI">Suomi (Finnish)</option>
-              <option value="en-US">English (US)</option>
-              <option value="en-GB">English (UK)</option>
-              <option value="es-ES">Español</option>
-              <option value="fr-FR">Français</option>
-            </select>
-          </div>
-          <div class="col">
-            <label for="voiceGender" id="voiceGenderLabel">Äänen sukupuoli:</label>
-            <select id="voiceGender" class="input">
-              <option value="female">Nainen</option>
-              <option value="male">Mies</option>
-            </select>
-          </div>
-        </div>
-        <div class="row">
-          <button id="backToSession" class="btn btn-primary">← Takaisin sessioon</button>
-          <button id="resetSettings" class="btn">Palauta oletukset</button>
+        
+        <div class="session-controls">
+          <button id="downloadSummaryBtn" class="aurora-btn aurora-btn-primary">
+            📥 Lataa Yhteenveto
+          </button>
+          <button id="newSessionBtn" class="aurora-btn aurora-btn-cosmic">
+            🚀 Uusi Sessio
+          </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <script>
-      // Global state
-      let sessionId = null;
-      let answered = 0, total = 10;
-      let currentSummary = '';
-      let sessionStartTime = null;
-      let analysisRequested = false;
-      let settings = {
-        enableAvatar: true,
-        enableVoice: true,
-        enableAmbient: true,
-        speechRate: 1.0,
-        micSensitivity: 0.5,
-        language: 'fi-FI',
-        voiceGender: 'female'
-      };
+  <script>
+    // Initialize Aurora UI
+    const aurora = new AuroraUILibrary({
+      theme: 'cosmic',
+      accessibility: true,
+      mobile: true
+    });
 
-      // Localization texts
-      const texts = {
-        'fi-FI': {
-          mainTitle: 'NLP Therapy AI',
-          projectDesc: 'Ilmainen ja yksityinen terapiakeskustelu. Tietosi pysyvät tällä laitteella.',
-          newSession: 'Uusi Sessio',
-          pause: 'Tauko',
-          continue: 'Jatka',
-          end: 'Lopeta',
-          settings: 'Asetukset',
-          state: 'tila',
-          duration: 'kesto',
-          silence: 'hiljaisuus',
-          mic: 'Mikki',
-          micOn: 'Päällä',
-          micOff: 'Pois',
-          listening: 'Kuuntelen… ota aikaa.',
-          speakNow: 'Voit puhua nyt',
-          question: 'Kysymys',
-          of: '/',
-          replay: 'Toista',
-          send: 'Lähetä',
-          skip: 'Ohita',
-          next: 'Seuraava kysymys',
-          conversation: 'Keskustelu',
-          summaryTitle: 'Sessio Yhteenveto',
-          generatingSummary: 'Luodaan henkilökohtaista yhteenvetoa...',
-          download: 'Lataa',
-          share: 'Jaa',
-          newSessionFromSummary: 'Uusi Sessio',
-          settingsTitle: 'Asetukset',
-          avatarLabel: 'Ota käyttöön avatar-animaatiot',
-          voiceLabel: 'Ota käyttöön ääni (TTS/ASR)',
-          ambientLabel: 'Taustamelut',
-          speechRateLabel: 'Puheenopeus:',
-          micSensitivityLabel: 'Mikrofonin herkkyys:',
-          languageLabel: 'Kieli:',
-          voiceGenderLabel: 'Äänen sukupuoli:',
-          female: 'Nainen',
-          male: 'Mies',
-          backToSession: '← Takaisin sessioon',
-          resetSettings: 'Palauta oletukset',
-          pressStart: 'Paina Aloita aloittaaksesi.',
-          shareThoughts: 'Jaa ajatuksiasi...',
-          sessionStarted: 'Sessio aloitettu!',
-          analyzing: 'Analysoin vastauksiasi...',
-          summary: 'Yhteenveto:',
-          skipped: 'Ohitit kysymyksen. Se on ihan ok.',
-          sessionCreated: 'Sessio luotu.',
-          sessionEnded: 'Sessio päättynyt.',
-          dailyInspiration: 'Päivittäinen inspiraatio',
-          loadingQuote: 'Ladataan päivittäistä inspiraatiota...'
-        },
-        'en-US': {
-          mainTitle: 'NLP Therapy AI',
-          projectDesc: 'Free and private therapy conversation. Your data stays on this device.',
-          newSession: 'New Session',
-          pause: 'Pause',
-          continue: 'Continue',
-          end: 'End',
-          settings: 'Settings',
-          state: 'state',
-          duration: 'duration',
-          silence: 'silence',
-          mic: 'Mic',
-          micOn: 'On',
-          micOff: 'Off',
-          listening: 'I\'m listening… take your time.',
-          speakNow: 'You can speak now',
-          question: 'Question',
-          of: 'of',
-          replay: 'Replay',
-          send: 'Send',
-          skip: 'Skip',
-          next: 'Next Question',
-          conversation: 'Conversation',
-          summaryTitle: 'Session Summary',
-          generatingSummary: 'Generating your personalized summary...',
-          download: 'Download',
-          share: 'Share',
-          newSessionFromSummary: 'New Session',
-          settingsTitle: 'Settings',
-          avatarLabel: 'Enable avatar animations',
-          voiceLabel: 'Enable voice (TTS/ASR)',
-          ambientLabel: 'Background ambient sounds',
-          speechRateLabel: 'Speech Rate:',
-          micSensitivityLabel: 'Microphone Sensitivity:',
-          languageLabel: 'Language:',
-          voiceGenderLabel: 'Voice Gender:',
-          female: 'Female',
-          male: 'Male',
-          backToSession: '← Back to Session',
-          resetSettings: 'Reset to Defaults',
-          pressStart: 'Press Start to begin.',
-          shareThoughts: 'Share what\'s on your mind...',
-          sessionStarted: 'Session started!',
-          analyzing: 'Analyzing your responses...',
-          summary: 'Summary:',
-          skipped: 'You skipped. It\'s okay.',
-          sessionCreated: 'Session created.',
-          sessionEnded: 'Session ended.',
-          dailyInspiration: 'Daily Inspiration',
-          loadingQuote: 'Loading daily inspiration...'
-        }
-      };
+    // Global state
+    let sessionId = null;
+    let currentQuestion = 0;
+    let totalQuestions = 10;
+    let sessionStarted = false;
+    let currentSummary = '';
+    
+    // Questions in Finnish
+    const questions = [
+      'Miten voitte tänään?',
+      'Mikä tuntuu mielessäsi voimakkaimmin?',
+      'Mistä kohtaa kehoasi tunnette tämän?',
+      'Miltä tuki näyttäisi juuri nyt?',
+      'Onko jotain, mitä haluaisitte päästää irti?',
+      'Mikä olisi lempeä seuraava askel?',
+      'Mistä olette kiitollisia tänään?',
+      'Kenelle voitte nojata tuen saamiseksi?',
+      'Mitä tarvitsette itseltänne?',
+      'Minkä aikomuksen asetatte huomiselle?'
+    ];
 
-      // Utility functions
-      function fmt(ms){ return Math.round(ms/1000)+'s'; }
-      function setProgress(){ document.getElementById('progressbar').style.width = Math.min(100, (answered/total)*100) + '%'; }
-      function log(line){ const el = document.getElementById('log'); el.textContent += line + '\n'; el.scrollTop = el.scrollHeight; }
-      function showScreen(screenId){ document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(screenId).classList.add('active'); }
-      function t(key) { return texts[settings.language]?.[key] || texts['fi-FI'][key] || key; }
-      function updateUI() {
-        const t = texts[settings.language] || texts['fi-FI'];
-        document.getElementById('mainTitle').textContent = t.mainTitle;
-        document.getElementById('projectDesc').textContent = t.projectDesc;
-        document.getElementById('new').textContent = t.newSession;
-        document.getElementById('pause').textContent = t.pause;
-        document.getElementById('end').textContent = t.end;
-        document.getElementById('settingsBtn').textContent = '⚙️ ' + t.settings;
-        document.getElementById('mic').textContent = '🎤 ' + t.mic + ': ' + t.micOff;
-        document.getElementById('speakIndicator').textContent = '💬 ' + t.speakNow;
-        document.getElementById('replay').textContent = '🔁 ' + t.replay;
-        document.getElementById('send').textContent = t.send;
-        document.getElementById('skip').textContent = t.skip;
-        document.getElementById('next').textContent = t.next;
-        document.getElementById('summaryTitle').textContent = t.summaryTitle;
-        document.getElementById('downloadSummary').textContent = '📥 ' + t.download;
-        document.getElementById('shareSummary').textContent = '📤 ' + t.share;
-        document.getElementById('newSessionFromSummary').textContent = t.newSessionFromSummary;
-        document.getElementById('settingsTitle').textContent = t.settingsTitle;
-        document.getElementById('avatarLabel').textContent = t.avatarLabel;
-        document.getElementById('voiceLabel').textContent = t.voiceLabel;
-        document.getElementById('ambientLabel').textContent = t.ambientLabel;
-        document.getElementById('speechRateLabel').textContent = t.speechRateLabel;
-        document.getElementById('micSensitivityLabel').textContent = t.micSensitivityLabel;
-        document.getElementById('languageLabel').textContent = t.languageLabel;
-        document.getElementById('voiceGenderLabel').textContent = t.voiceGenderLabel;
-        document.getElementById('backToSession').textContent = t.backToSession;
-        document.getElementById('resetSettings').textContent = t.resetSettings;
-        document.getElementById('input').placeholder = t.shareThoughts;
-        document.querySelector('h3').textContent = t.conversation;
-        document.getElementById('question').textContent = t.pressStart;
-        document.getElementById('quoteText').textContent = t.loadingQuote;
-        updateQuestion();
-        loadDailyQuote();
-      }
-      function showNotification(message) {
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.textContent = message;
-        document.querySelector('.container').insertBefore(notification, document.querySelector('.container').firstChild);
-        setTimeout(() => notification.remove(), 3000);
-      }
-      function getSessionName() {
-        const now = new Date();
-        const days = ['Sunnuntai', 'Maanantai', 'Tiistai', 'Keskiviikko', 'Torstai', 'Perjantai', 'Lauantai'];
-        const dayName = settings.language === 'fi-FI' ? days[now.getDay()] : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][now.getDay()];
-        const date = now.getDate() + '.' + (now.getMonth() + 1) + '.' + now.getFullYear();
-        return settings.language === 'fi-FI' ? `Sessio, ${dayName} ${date}` : `Session, ${dayName} ${date}`;
-      }
-      
-      async function loadDailyQuote() {
-        try {
-          const today = new Date().toDateString();
-          const cached = localStorage.getItem('dailyQuote');
-          const cachedData = cached ? JSON.parse(cached) : null;
-          
-          // Use cached quote if it's from today
-          if (cachedData && cachedData.date === today) {
-            document.getElementById('quoteText').textContent = cachedData.quote;
-            return;
-          }
-          
-          // Fetch new quote from AI
-          const systemPrompt = settings.language === 'fi-FI' 
-            ? 'Olet myötätuntoinen terapeutti. Anna lyhyt, inspiroiva päivittäinen viesti (1-2 lausetta) joka auttaa ihmisiä tuntemaan toivoa ja voimaa. Vastaa vain viestin sisällöllä, ei ylimääräisillä selityksillä.'
-            : 'You are an empathetic therapist. Provide a brief, inspiring daily message (1-2 sentences) that helps people feel hope and strength. Respond only with the message content, no extra explanations.';
-          
-          const messages = [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: settings.language === 'fi-FI' 
-              ? 'Anna minulle inspiroiva päivittäinen viesti tänään.' 
-              : 'Give me an inspiring daily message for today.' }
-          ];
-          
-          const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages, task: 'inspiration' })
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            const quote = data.content || t('loadingQuote');
-            document.getElementById('quoteText').textContent = quote;
-            
-            // Cache the quote for today
-            localStorage.setItem('dailyQuote', JSON.stringify({
-              date: today,
-              quote: quote
-            }));
-          } else {
-            throw new Error('Failed to fetch quote');
-          }
-        } catch (error) {
-          console.error('Error loading daily quote:', error);
-          document.getElementById('quoteText').textContent = settings.language === 'fi-FI' 
-            ? 'Tänään on hyvä päivä olla lempeä itselleen.' 
-            : 'Today is a good day to be gentle with yourself.';
-        }
-      }
-      
-      // Settings management
-      function loadSettings(){
-        const saved = localStorage.getItem('nlpTherapySettings');
-        if (saved) settings = { ...settings, ...JSON.parse(saved) };
-        document.getElementById('enableAvatar').checked = settings.enableAvatar;
-        document.getElementById('enableVoice').checked = settings.enableVoice;
-        document.getElementById('enableAmbient').checked = settings.enableAmbient;
-        document.getElementById('speechRate').value = settings.speechRate;
-        document.getElementById('micSensitivity').value = settings.micSensitivity;
-        document.getElementById('language').value = settings.language;
-        document.getElementById('voiceGender').value = settings.voiceGender;
-        updateSettingsUI();
-      }
-      function saveSettings(){
-        localStorage.setItem('nlpTherapySettings', JSON.stringify(settings));
-      }
-      function updateSettingsUI(){
-        document.getElementById('speechRateValue').textContent = settings.speechRate + 'x';
-        document.getElementById('micSensitivityValue').textContent = settings.micSensitivity;
-        document.getElementById('avatar').style.display = settings.enableAvatar ? 'block' : 'none';
-        document.getElementById('mic').style.display = settings.enableVoice ? 'block' : 'none';
-      }
+    // DOM elements
+    const elements = {
+      sessionScreen: document.getElementById('sessionScreen'),
+      summaryScreen: document.getElementById('summaryScreen'),
+      startSessionBtn: document.getElementById('startSessionBtn'),
+      pauseBtn: document.getElementById('pauseBtn'),
+      endBtn: document.getElementById('endBtn'),
+      questionCard: document.getElementById('questionCard'),
+      questionText: document.getElementById('questionText'),
+      progressIndicator: document.getElementById('progressIndicator'),
+      userInput: document.getElementById('userInput'),
+      sendBtn: document.getElementById('sendBtn'),
+      skipBtn: document.getElementById('skipBtn'),
+      nextBtn: document.getElementById('nextBtn'),
+      conversationLog: document.getElementById('conversationLog'),
+      messagesContainer: document.getElementById('messagesContainer'),
+      therapyAvatar: document.getElementById('therapyAvatar'),
+      summaryContent: document.getElementById('summaryContent'),
+      downloadSummaryBtn: document.getElementById('downloadSummaryBtn'),
+      newSessionBtn: document.getElementById('newSessionBtn')
+    };
 
-      // Session status updates
-      async function status(){
-        if (!sessionId) return;
-        const r = await fetch(`/api/session/${sessionId}`);
-        if (!r.ok) return;
-        const s = await r.json();
-        document.getElementById('state').textContent = 'state: ' + s.state;
-        document.getElementById('duration').textContent = 'duration: ' + fmt(s.durationMs);
-        document.getElementById('silence').textContent = 'silence: ' + fmt(s.silenceMs);
-        if (s.state === 'listening')
-          document.getElementById('listeningLabel').classList.remove('hidden');
-        else
-          document.getElementById('listeningLabel').classList.add('hidden');
+    // Initialize progress indicator
+    function initProgressIndicator() {
+      elements.progressIndicator.innerHTML = '';
+      for (let i = 0; i < totalQuestions; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'progress-dot';
+        if (i < currentQuestion) dot.classList.add('completed');
+        else if (i === currentQuestion) dot.classList.add('active');
+        elements.progressIndicator.appendChild(dot);
       }
-      setInterval(status, 1500);
+    }
 
-      // Voice & avatar with gender selection
-      let micOn = false; let recognition; let desireMic = false;
-      const mouth = document.getElementById('mouth');
-      const leftEye = document.getElementById('leftEye');
-      const rightEye = document.getElementById('rightEye');
-      const leftEyebrow = document.getElementById('leftEyebrow');
-      const rightEyebrow = document.getElementById('rightEyebrow');
-      
-      function setMouthTalking(on){ 
-        if (settings.enableAvatar) {
-          mouth.setAttribute('r', on ? '3' : '2');
-          // Change mouth shape when talking
-          if (on) {
-            mouth.setAttribute('d', 'M28 28 Q32 32 36 28');
-          } else {
-            mouth.setAttribute('d', 'M28 28 Q32 26 36 28');
-          }
-        }
-      }
+    // Update progress
+    function updateProgress() {
+      const dots = elements.progressIndicator.querySelectorAll('.progress-dot');
+      dots.forEach((dot, index) => {
+        dot.classList.remove('active', 'completed');
+        if (index < currentQuestion) dot.classList.add('completed');
+        else if (index === currentQuestion) dot.classList.add('active');
+      });
+    }
 
-      function setMicVisual(on){
-        const micBtn = document.getElementById('mic');
-        if (on) micBtn.classList.add('mic-on'); else micBtn.classList.remove('mic-on');
+    // Show question
+    function showQuestion() {
+      if (currentQuestion < totalQuestions) {
+        elements.questionText.textContent = questions[currentQuestion];
+        elements.userInput.value = '';
+        elements.userInput.focus();
+        updateProgress();
       }
-      
-      function setExpression(emotion) {
-        if (!settings.enableAvatar) return;
-        
-        switch(emotion) {
-          case 'listening':
-            // Slightly raised eyebrows, attentive eyes
-            leftEyebrow.setAttribute('d', 'M25 17 Q28 15 31 17');
-            rightEyebrow.setAttribute('d', 'M33 17 Q36 15 39 17');
-            break;
-          case 'thinking':
-            // Slightly furrowed brows
-            leftEyebrow.setAttribute('d', 'M25 19 Q28 17 31 19');
-            rightEyebrow.setAttribute('d', 'M33 19 Q36 17 39 19');
-            break;
-          case 'empathetic':
-            // Gentle, caring expression
-            leftEyebrow.setAttribute('d', 'M25 17 Q28 16 31 17');
-            rightEyebrow.setAttribute('d', 'M33 17 Q36 16 39 17');
-            break;
-          default:
-            // Neutral expression
-            leftEyebrow.setAttribute('d', 'M25 18 Q28 16 31 18');
-            rightEyebrow.setAttribute('d', 'M33 18 Q36 16 39 18');
-        }
-      }
-      
-      function getVoiceForLanguage() {
-        const voices = window.speechSynthesis.getVoices();
-        const lang = settings.language;
-        const gender = settings.voiceGender;
-        
-        // Try to find a voice that matches language and gender
-        let preferredVoice = voices.find(voice => 
-          voice.lang.startsWith(lang.split('-')[0]) && 
-          (gender === 'female' ? voice.name.toLowerCase().includes('female') || voice.name.toLowerCase().includes('woman') : 
-           voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man'))
-        );
-        
-        // Fallback to any voice in the language
-        if (!preferredVoice) {
-          preferredVoice = voices.find(voice => voice.lang.startsWith(lang.split('-')[0]));
-        }
-        
-        // Final fallback to default
-        if (!preferredVoice) {
-          preferredVoice = voices.find(voice => voice.default) || voices[0];
-        }
-        
-        return preferredVoice;
-      }
-      
-      async function ttsSpeak(text){
-        if (!settings.enableVoice) return;
-        
-        // Turn off mic while therapist is speaking
-        if (micOn && recognition) {
-          try { recognition.stop(); } catch (_) {}
-          micOn = false;
-          document.getElementById('mic').textContent = '🎤 ' + t('mic') + ': ' + t('micOff');
-          setMicVisual(false);
-        }
-        
-        // Wait for voices to load
-        if (window.speechSynthesis.getVoices().length === 0) {
-          await new Promise(resolve => {
-            window.speechSynthesis.onvoiceschanged = resolve;
-          });
-        }
-        
-        const u = new SpeechSynthesisUtterance(text);
-        u.rate = settings.speechRate; 
-        u.pitch = 1.0; 
-        u.lang = settings.language;
-        
-        const voice = getVoiceForLanguage();
-        if (voice) u.voice = voice;
-        
-        u.onstart = () => {
-          setMouthTalking(true);
-          setExpression('empathetic');
-          // Ensure mic stays off while speaking
-          if (micOn && recognition) {
-            try { recognition.stop(); } catch (_) {}
-            micOn = false;
-            document.getElementById('mic').textContent = '🎤 ' + t('mic') + ': ' + t('micOff');
-            setMicVisual(false);
-          }
-        }; 
-        u.onend = () => {
-          setMouthTalking(false);
-          // Show speak indicator when therapist finishes
-          document.getElementById('speakIndicator').classList.remove('hidden');
-          // Re-enable mic if user wants continuous listening
-          if (desireMic && recognition && !document.getElementById('send').disabled) {
-            setTimeout(() => { 
-              try { recognition.start(); setMicVisual(true);} catch (_) {} 
-            }, 500);
-          }
-        };
-        window.speechSynthesis.speak(u);
-      }
-      
-      function initASR(){
-        if (!settings.enableVoice) return null;
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) return null;
-        const rec = new SR();
-        rec.lang = settings.language;
-        rec.continuous = false;
-        rec.interimResults = false;
-        rec.maxAlternatives = 1;
-        
-        rec.onstart = () => { 
-          document.getElementById('mic').textContent = '🎤 Mic: On'; 
-          micOn = true;
-          setExpression('listening');
-          // Hide speak indicator when listening starts
-          document.getElementById('speakIndicator').classList.add('hidden');
-          setMicVisual(true);
-        };
-        rec.onend = () => { 
-          document.getElementById('mic').textContent = '🎤 Mic: Off'; 
-          micOn = false;
-          setMicVisual(false);
-          if (desireMic) {
-            // auto-restart listening to capture next utterance
-            setTimeout(() => { try { rec.start(); } catch (_) {} }, 250);
-          }
-        };
-        rec.onerror = (event) => {
-          console.error('Speech recognition error:', event.error);
-          micOn = false;
-          document.getElementById('mic').textContent = '🎤 Mic: Off';
-          if (desireMic && (event.error === 'no-speech' || event.error === 'network')) {
-            setTimeout(() => { try { rec.start(); } catch (_) {} }, 500);
-          }
-        };
-        rec.onresult = async (e) => {
-          const transcript = e.results[0][0].transcript;
-          document.getElementById('input').value = transcript;
-          await sendMessage();
-          // continue listening for next answer if user wants continuous mic
-          if (desireMic) {
-            setTimeout(() => { try { rec.start(); } catch (_) {} }, 250);
-          }
-        };
-        return rec;
-      }
-      recognition = initASR();
+    }
 
-      // Question flow - Finnish and English
-      const questions = {
-        'fi-FI': [
-          'Miten voitte tänään?',
-          'Mikä tuntuu mielessäsi voimakkaimmin?',
-          'Mistä kohtaa kehoasi tunnette tämän?',
-          'Miltä tuki näyttäisi juuri nyt?',
-          'Onko jotain, mitä haluaisitte päästää irti?',
-          'Mikä olisi lempeä seuraava askel?',
-          'Mistä olette kiitollisia tänään?',
-          'Kenelle voitte nojata tuen saamiseksi?',
-          'Mitä tarvitsette itseltänne?',
-          'Minkä aikomuksen asetatte huomiselle?'
-        ],
-        'en-US': [
-          'How are you feeling today?',
-          'What feels most present in your mind?',
-          'Where do you feel this in your body?',
-          'What would support look like right now?',
-          'Is there something you want to let go of?',
-          'What would be a gentle next step?',
-          'What are you grateful for today?',
-          'Who can you lean on for support?',
-          'What do you need from yourself?',
-          'What intention do you set for tomorrow?'
-        ]
-      };
-      function updateQuestion(){
-        const idx = Math.min(answered, total - 1);
-        const langQuestions = questions[settings.language] || questions['fi-FI'];
-        document.getElementById('question').textContent = langQuestions[idx];
-        const progressText = `${t('question')} ${answered+1} ${t('of')} ${total}`;
-        document.getElementById('progressText').textContent = progressText;
-      }
+    // Add message to conversation
+    function addMessage(content, role) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}`;
+      messageDiv.textContent = content;
+      elements.messagesContainer.appendChild(messageDiv);
+      elements.conversationLog.scrollTop = elements.conversationLog.scrollHeight;
+    }
 
-      // Session management
-      document.getElementById('new').onclick = async () => {
-        const r = await fetch('/api/session', { method: 'POST' });
-        const d = await r.json();
-        sessionId = d.id; answered = 0; setProgress(); updateQuestion();
-        log(getSessionName() + ' - ' + t('sessionCreated'));
+    // Show notification
+    function showNotification(message, type = 'info') {
+      // Create toast notification using Aurora UI
+      const toast = aurora.createComponent('toast', {
+        message: message,
+        type: type,
+        duration: 3000
+      });
+      document.body.appendChild(toast);
+    }
+
+    // Start new session
+    async function startSession() {
+      try {
+        // Create session
+        const response = await fetch('/api/session', { method: 'POST' });
+        const data = await response.json();
+        sessionId = data.id;
         
-        // Auto-start session and read first question
+        // Start session
         await fetch(`/api/session/${sessionId}/start`, { method: 'POST' });
-        sessionStartTime = Date.now();
-        showNotification(t('sessionStarted'));
-        const langQuestions = questions[settings.language] || questions['fi-FI'];
-        const currentQuestion = langQuestions[Math.min(answered, total - 1)];
-        await ttsSpeak(currentQuestion);
         
-        showScreen('sessionScreen');
-      };
-      let isPaused = false;
-      document.getElementById('pause').onclick = async () => {
-        if (!sessionId) return;
-        if (isPaused) {
-          // Resume session
-          await fetch(`/api/session/${sessionId}/start`, { method: 'POST' });
-          document.getElementById('pause').textContent = t('pause');
-          isPaused = false;
-          showNotification(t('sessionStarted'));
-        } else {
-          // Pause session
-          await fetch(`/api/session/${sessionId}/pause`, { method: 'POST' });
-          document.getElementById('pause').textContent = t('continue');
-          isPaused = true;
-          showNotification(t('pause'));
-        }
-      };
-      document.getElementById('end').onclick = async () => {
-        if (!sessionId) return; 
-        await fetch(`/api/session/${sessionId}/end`, { method: 'POST' });
-        log(t('sessionEnded'));
-        if (answered >= total) await showSummary();
-      };
+        sessionStarted = true;
+        currentQuestion = 0;
+        
+        // Update UI
+        elements.startSessionBtn.classList.add('hidden');
+        elements.pauseBtn.classList.remove('hidden');
+        elements.endBtn.classList.remove('hidden');
+        elements.questionCard.classList.remove('hidden');
+        elements.conversationLog.classList.remove('hidden');
+        
+        initProgressIndicator();
+        showQuestion();
+        
+        showNotification('Sessio aloitettu! Voitte aloittaa vastaamalla kysymykseen.', 'success');
+        
+      } catch (error) {
+        console.error('Error starting session:', error);
+        showNotification('Virhe session aloittamisessa. Yritä uudelleen.', 'error');
+      }
+    }
 
-      // Chat functionality
-      async function sendMessage(){
-        if (!sessionId) return;
-        if (analysisRequested) return;
-        const content = document.getElementById('input').value.trim();
-        if (!content) return;
+    // Send message
+    async function sendMessage() {
+      const content = elements.userInput.value.trim();
+      if (!content) return;
+      
+      try {
+        // Add user message to conversation
+        addMessage(content, 'user');
         
-        // Get brief AI response to the question
-        const currentQuestion = questions[settings.language] || questions['fi-FI'];
-        const questionText = currentQuestion[Math.min(answered, total - 1)];
+        // Get AI response
         const messages = [
-          { role: 'system', content: settings.language === 'fi-FI' 
-            ? 'Olet myötätuntoinen terapeutti. Anna lyhyt, ymmärtävä vastaus (1-2 lausetta) käyttäjän vastaukseen terapiakysymykseen. Älä kysy jatkokysymyksiä, vaan anna tukea ja ymmärrystä.'
-            : 'You are an empathetic therapist. Give a brief, understanding response (1-2 sentences) to the user\'s answer to a therapy question. Don\'t ask follow-up questions, just offer support and understanding.' },
-          { role: 'user', content: `Question: ${questionText}\n\nUser's answer: ${content}` }
+          { 
+            role: 'system', 
+            content: 'Olet myötätuntoinen terapeutti. Anna lyhyt, ymmärtävä vastaus (1-2 lausetta) käyttäjän vastaukseen terapiakysymykseen. Älä kysy jatkokysymyksiä, vaan anna tukea ja ymmärrystä.' 
+          },
+          { 
+            role: 'user', 
+            content: `Kysymys: ${questions[currentQuestion]}\n\nKäyttäjän vastaus: ${content}` 
+          }
         ];
         
-        const r = await fetch('/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ messages, task: 'therapy_response', sessionId }) });
-        const d = await r.json();
-        log('Sinä: ' + content);
-        setExpression('thinking');
-        // Hide speak indicator when user sends message
-        document.getElementById('speakIndicator').classList.add('hidden');
-        if (d.content) { 
-          log('AI: ' + d.content); 
-          answered++; 
-          setProgress(); 
-          if (answered >= total) {
-            // stop inputs and trigger analysis once
-            disableInputs();
-            if (!analysisRequested) { analysisRequested = true; await showSummary(); }
-            return;
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages, task: 'therapy_response', sessionId })
+        });
+        
+        const data = await response.json();
+        
+        if (data.content) {
+          addMessage(data.content, 'assistant');
+          currentQuestion++;
+          
+          if (currentQuestion >= totalQuestions) {
+            // Session complete - generate summary
+            await generateSummary();
+          } else {
+            // Show next button
+            elements.sendBtn.classList.add('hidden');
+            elements.skipBtn.classList.add('hidden');
+            elements.nextBtn.classList.remove('hidden');
+            elements.userInput.disabled = true;
           }
-          // Show next button and disable send/skip
-          document.getElementById('input').value = '';
-          document.getElementById('send').disabled = true;
-          document.getElementById('skip').disabled = true;
-          document.getElementById('next').classList.remove('hidden');
-          if (d.content) await ttsSpeak(d.content);
-          // After therapist response, do NOT enable mic until user clicks Next and question is read
-          desireMic = false;
         }
+        
+      } catch (error) {
+        console.error('Error sending message:', error);
+        showNotification('Virhe viestin lähettämisessä. Yritä uudelleen.', 'error');
       }
-      document.getElementById('send').onclick = sendMessage;
-      document.getElementById('skip').onclick = async () => {
-        if (!sessionId) return; 
-        answered++; 
-        setProgress(); 
-        log(t('skipped'));
-        if (answered >= total) {
-          disableInputs();
-          if (!analysisRequested) { analysisRequested = true; await showSummary(); }
-          return;
-        }
-        // Show next button and disable send/skip
-        document.getElementById('send').disabled = true;
-        document.getElementById('skip').disabled = true;
-        document.getElementById('next').classList.remove('hidden');
-        updateQuestion();
-      };
+    }
+
+    // Skip question
+    function skipQuestion() {
+      addMessage('Kysymys ohitettu.', 'user');
+      currentQuestion++;
       
-      document.getElementById('next').onclick = async () => {
-        if (!sessionId) return;
-        // Re-enable send/skip, hide next button
-        document.getElementById('send').disabled = false;
-        document.getElementById('skip').disabled = false;
-        document.getElementById('next').classList.add('hidden');
-        updateQuestion();
-        // Read next question with mic off, then enable mic
-        const langQuestions = questions[settings.language] || questions['fi-FI'];
-        await ttsSpeak(langQuestions[Math.min(answered, total - 1)]);
-        desireMic = true;
-      };
-      document.getElementById('replay').onclick = async () => { 
-        const idx = Math.min(answered, total - 1); 
-        const langQuestions = questions[settings.language] || questions['fi-FI'];
-        await ttsSpeak(langQuestions[idx]); 
-      };
-      function disableInputs(){
-        document.getElementById('send').disabled = true;
-        document.getElementById('skip').disabled = true;
-        document.getElementById('next').disabled = true;
-        document.getElementById('replay').disabled = true;
-        document.getElementById('input').disabled = true;
-        desireMic = false;
-        try { recognition && recognition.stop(); } catch (_) {}
-        document.getElementById('mic').disabled = true;
+      if (currentQuestion >= totalQuestions) {
+        generateSummary();
+      } else {
+        elements.sendBtn.classList.add('hidden');
+        elements.skipBtn.classList.add('hidden');
+        elements.nextBtn.classList.remove('hidden');
+        elements.userInput.disabled = true;
       }
+    }
 
-      document.getElementById('mic').onclick = () => {
-        if (!recognition) { alert('Speech Recognition not supported in this browser'); return; }
-        if (!micOn) { 
-          desireMic = true;
-          try { recognition.start(); setMicVisual(true);} catch (_) {}
-        }
-        else { 
-          desireMic = false;
-          try { recognition.stop(); setMicVisual(false);} catch (_) {}
-        }
-      };
+    // Next question
+    function nextQuestion() {
+      elements.sendBtn.classList.remove('hidden');
+      elements.skipBtn.classList.remove('hidden');
+      elements.nextBtn.classList.add('hidden');
+      elements.userInput.disabled = false;
+      elements.userInput.focus();
+      showQuestion();
+    }
 
-      // Summary functionality
-      async function showSummary(){
-        log(t('analyzing'));
-        const r = await fetch('/api/summary', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ sessionId }) });
-        const d = await r.json();
-        if (d.summary) { 
-          currentSummary = d.summary;
-          document.getElementById('summaryContent').textContent = d.summary;
-          log(t('summary') + d.summary); 
-          await ttsSpeak(d.summary);
-          showScreen('summaryScreen');
+    // Generate summary
+    async function generateSummary() {
+      try {
+        elements.summaryContent.textContent = 'Luodaan henkilökohtaista yhteenvetoa...';
+        
+        const response = await fetch('/api/summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId })
+        });
+        
+        const data = await response.json();
+        
+        if (data.summary) {
+          currentSummary = data.summary;
+          elements.summaryContent.textContent = data.summary;
+          
+          // Show summary screen
+          elements.sessionScreen.classList.add('hidden');
+          elements.summaryScreen.classList.remove('hidden');
+          
+          showNotification('Sessio valmis! Yhteenveto on luotu.', 'success');
         }
+        
+      } catch (error) {
+        console.error('Error generating summary:', error);
+        showNotification('Virhe yhteenvedon luomisessa.', 'error');
       }
-      document.getElementById('downloadSummary').onclick = () => {
-        const blob = new Blob([currentSummary], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `therapy-session-${new Date().toISOString().split('T')[0]}.txt`;
-        a.click();
-        URL.revokeObjectURL(url);
-      };
-      document.getElementById('shareSummary').onclick = async () => {
-        if (navigator.share) {
-          try { await navigator.share({ title: 'Therapy Session Summary', text: currentSummary }); }
-          catch (e) { console.log('Share cancelled'); }
-        } else {
-          navigator.clipboard.writeText(currentSummary).then(() => alert('Summary copied to clipboard'));
-        }
-      };
-      document.getElementById('newSessionFromSummary').onclick = () => {
-        document.getElementById('new').click();
-      };
+    }
 
-      // Settings functionality
-      document.getElementById('settingsBtn').onclick = () => showScreen('settingsScreen');
-      document.getElementById('backToSession').onclick = () => showScreen('sessionScreen');
-      document.getElementById('resetSettings').onclick = () => {
-        settings = { enableAvatar: true, enableVoice: true, enableAmbient: true, speechRate: 1.0, micSensitivity: 0.5, language: 'fi-FI', voiceGender: 'female' };
-        loadSettings();
-        saveSettings();
-      };
-      document.getElementById('enableAvatar').onchange = (e) => { settings.enableAvatar = e.target.checked; saveSettings(); updateSettingsUI(); };
-      document.getElementById('enableVoice').onchange = (e) => { settings.enableVoice = e.target.checked; saveSettings(); updateSettingsUI(); recognition = initASR(); };
-      document.getElementById('enableAmbient').onchange = (e) => { settings.enableAmbient = e.target.checked; saveSettings(); };
-      document.getElementById('speechRate').oninput = (e) => { settings.speechRate = parseFloat(e.target.value); saveSettings(); updateSettingsUI(); };
-      document.getElementById('micSensitivity').oninput = (e) => { settings.micSensitivity = parseFloat(e.target.value); saveSettings(); updateSettingsUI(); };
-      document.getElementById('language').onchange = (e) => { 
-        settings.language = e.target.value; 
-        saveSettings(); 
-        updateUI();
-        recognition = initASR(); 
-      };
-      document.getElementById('voiceGender').onchange = (e) => { settings.voiceGender = e.target.value; saveSettings(); };
+    // Download summary
+    function downloadSummary() {
+      const blob = new Blob([currentSummary], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `terapia-sessio-${new Date().toISOString().split('T')[0]}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
 
-      // Initialize
-      loadSettings();
-      updateUI();
-    </script>
-  </body>
-  </html>
+    // End session
+    async function endSession() {
+      if (sessionId) {
+        await fetch(`/api/session/${sessionId}/end`, { method: 'POST' });
+      }
+      
+      // Reset UI
+      sessionStarted = false;
+      sessionId = null;
+      currentQuestion = 0;
+      
+      elements.startSessionBtn.classList.remove('hidden');
+      elements.pauseBtn.classList.add('hidden');
+      elements.endBtn.classList.add('hidden');
+      elements.questionCard.classList.add('hidden');
+      elements.conversationLog.classList.add('hidden');
+      elements.summaryScreen.classList.add('hidden');
+      
+      elements.messagesContainer.innerHTML = '';
+      
+      showNotification('Sessio päättynyt.', 'info');
+    }
+
+    // Event listeners
+    elements.startSessionBtn.addEventListener('click', startSession);
+    elements.sendBtn.addEventListener('click', sendMessage);
+    elements.skipBtn.addEventListener('click', skipQuestion);
+    elements.nextBtn.addEventListener('click', nextQuestion);
+    elements.endBtn.addEventListener('click', endSession);
+    elements.downloadSummaryBtn.addEventListener('click', downloadSummary);
+    elements.newSessionBtn.addEventListener('click', () => {
+      elements.summaryScreen.classList.add('hidden');
+      elements.sessionScreen.classList.remove('hidden');
+      startSession();
+    });
+
+    // Enter key to send message
+    elements.userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Initialize
+    initProgressIndicator();
+    
+    // Apply Aurora techniques
+    aurora.applyTechnique('magnetic-buttons', elements.startSessionBtn);
+    aurora.applyTechnique('magnetic-buttons', elements.sendBtn);
+    aurora.applyTechnique('magnetic-buttons', elements.skipBtn);
+    aurora.applyTechnique('magnetic-buttons', elements.nextBtn);
+    
+    console.log('🌸 Kalle Kotipsykiatri initialized with Aurora UI');
+  </script>
+</body>
+</html>

@@ -137,21 +137,32 @@ app.get('/api/session/:id', (req, res) => {
 app.post('/api/chat', rateLimit, async (req, res) => {
   const { messages = [], task = null, model: explicitModel = null, sessionId = null } = req.body || {};
   
-  // Input validation
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return res.status(400).json({ error: 'Messages array is required and must not be empty' });
+  // Input validation - more lenient for better UX
+  if (!Array.isArray(messages)) {
+    return res.status(400).json({ error: 'Messages must be an array' });
   }
   
-  // Validate message structure
+  // Allow empty messages for initial requests
+  if (messages.length === 0) {
+    return res.status(400).json({ error: 'At least one message is required' });
+  }
+  
+  // Validate message structure - more lenient
   for (const msg of messages) {
-    if (!msg.role || !msg.content || typeof msg.content !== 'string') {
+    if (!msg || typeof msg !== 'object') {
+      return res.status(400).json({ error: 'Each message must be an object' });
+    }
+    if (!msg.role || !msg.content) {
       return res.status(400).json({ error: 'Each message must have role and content fields' });
     }
     if (!['system', 'user', 'assistant'].includes(msg.role)) {
       return res.status(400).json({ error: 'Message role must be system, user, or assistant' });
     }
-    if (msg.content.length > 10000) {
-      return res.status(400).json({ error: 'Message content too long (max 10000 characters)' });
+    if (typeof msg.content !== 'string') {
+      return res.status(400).json({ error: 'Message content must be a string' });
+    }
+    if (msg.content.length > 50000) {
+      return res.status(400).json({ error: 'Message content too long (max 50000 characters)' });
     }
   }
   
