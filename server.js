@@ -167,6 +167,34 @@ app.post('/api/chat', rateLimit, async (req, res) => {
   }
   
   const apiKey = process.env.OPENROUTER_API_KEY;
+  
+  // If no API key or demo key, return demo responses
+  if (!apiKey || apiKey === 'sk-or-v1-1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef') {
+    const demoResponses = [
+      "Kiitos jakamastasi ajatuksesta. Kuulen että tämä on sinulle tärkeää.",
+      "Se kuulostaa vaikealta tilanteelta. Onko jotain mikä auttaisi sinua tässä?",
+      "Ymmärrän tunteen. Onko jotain mikä tuo sinulle lohtua?",
+      "Kiitos että jaat tämän kanssani. Miltä tuntuu kun puhut tästä?",
+      "Kuulostaa siltä että tarvitset tukea. Miten voisin auttaa sinua?",
+      "Tämä kuulostaa merkitykselliseltä. Miltä kohtaa kehoasi tunnet tämän?",
+      "Kiitos luottamuksesta. Miten haluaisit että jatkamme tästä?",
+      "Ymmärrän että tämä on sinulle tärkeää. Miltä tuntuu nyt?",
+      "Kiitos avoimuudesta. Onko jotain mikä helpottaisi sinua?",
+      "Kuulen että tarvitset tukea. Miten voin auttaa sinua tässä?"
+    ];
+    
+    const randomResponse = demoResponses[Math.floor(Math.random() * demoResponses.length)];
+    
+    if (sessionId) {
+      const s = sessions.ensure(sessionId);
+      s.addAssistantMessage(randomResponse);
+      s.state = SessionState.LISTENING;
+      s.lastActivityAt = Date.now();
+    }
+    
+    return res.json({ content: randomResponse, model: 'demo', sessionId });
+  }
+  
   if (!apiKey) return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured' });
 
   const base = (process.env.OPENROUTER_BASE || 'https://openrouter.ai/api/v1').replace(/\/$/, '');
@@ -215,7 +243,29 @@ app.post('/api/chat', rateLimit, async (req, res) => {
 app.post('/api/summary', async (req, res) => {
   const { sessionId } = req.body || {};
   const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured' });
+  
+  // If no API key or demo key, return a demo summary
+  if (!apiKey || apiKey === 'sk-or-v1-1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef') {
+    const demoSummary = `Terapiasessio yhteenveto - ${new Date().toLocaleDateString('fi-FI')}
+
+Tämä oli merkityksellinen keskustelu, jossa tutkimme erilaisia ajatuksia ja tunteita. 
+Käyttäjä jakoi ajatuksiaan avoimesti ja sai tukea terapeuttisessa ympäristössä.
+
+Keskeiset teemat:
+- Henkilökohtainen hyvinvointi ja tunteet
+- Tuen tarve ja saaminen
+- Tulevaisuuden suunnitelmat ja aikomukset
+
+Suositukset:
+- Jatka itsetutkiskelua ja tunteiden tunnistamista
+- Etsi tukea läheisiltä ihmisiltä
+- Harjoittele lempeyttä itseä kohtaan
+
+Kiitos luottamuksesta ja avoimuudesta tässä sessissa.`;
+
+    return res.json({ summary: demoSummary });
+  }
+  
   if (!sessionId) return res.status(400).json({ error: 'sessionId is required' });
 
   const s = sessions.get(sessionId);
