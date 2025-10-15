@@ -887,12 +887,13 @@
 
     // Log voice assignments for each persona
     function logVoiceAssignments() {
-      console.log('🎤 Voice assignments:');
+      console.log('🎤 Voice assignments (Finnish voices prioritized):');
       Object.keys(voiceConfigs).forEach(persona => {
         const voice = getVoiceForPersona(persona);
         const config = voiceConfigs[persona];
         if (voice) {
-          console.log(`  ${config.name} (${config.gender}): ${voice.name} (${voice.lang}) - Rate: ${config.rate}, Pitch: ${config.pitch}`);
+          const isFinnish = voice.lang.startsWith('fi') ? '🇫🇮' : '🌍';
+          console.log(`  ${config.name} (${config.gender}): ${voice.name} (${voice.lang}) ${isFinnish} - Rate: ${config.rate}, Pitch: ${config.pitch}`);
         } else {
           console.log(`  ${config.name} (${config.gender}): No voice available`);
         }
@@ -922,24 +923,25 @@
       }
     }
 
-    // Get voice for current persona
+    // Get voice for current persona - Finnish voices prioritized
     function getVoiceForPersona(persona) {
       const config = voiceConfigs[persona];
       if (!config) return null;
 
-      // Separate male and female voices
-      const maleVoices = availableVoices.filter(voice => 
+      // Get all Finnish voices first
+      const finnishVoices = availableVoices.filter(voice => voice.lang.startsWith('fi'));
+      
+      // Separate Finnish male and female voices
+      const finnishMaleVoices = finnishVoices.filter(voice => 
         voice.name.toLowerCase().includes('male') || 
-        voice.name.toLowerCase().includes('david') ||
-        voice.name.toLowerCase().includes('mark') ||
+        voice.name.toLowerCase().includes('marko') ||
         voice.name.toLowerCase().includes('male') ||
         voice.name.toLowerCase().includes('man')
       );
       
-      const femaleVoices = availableVoices.filter(voice => 
+      const finnishFemaleVoices = finnishVoices.filter(voice => 
         voice.name.toLowerCase().includes('female') || 
         voice.name.toLowerCase().includes('heidi') ||
-        voice.name.toLowerCase().includes('susan') ||
         voice.name.toLowerCase().includes('anna') ||
         voice.name.toLowerCase().includes('maria') ||
         voice.name.toLowerCase().includes('helen') ||
@@ -949,23 +951,31 @@
 
       let preferredVoice = null;
 
-      if (config.gender === 'female' && femaleVoices.length > 0) {
-        // Use female voice based on persona index
-        const voiceIndex = config.voiceIndex % femaleVoices.length;
-        preferredVoice = femaleVoices[voiceIndex];
-      } else if (config.gender === 'male' && maleVoices.length > 0) {
-        // Use male voice based on persona index
-        const voiceIndex = config.voiceIndex % maleVoices.length;
-        preferredVoice = maleVoices[voiceIndex];
+      // Try to use Finnish voices first based on gender
+      if (config.gender === 'female' && finnishFemaleVoices.length > 0) {
+        // Use Finnish female voice based on persona index
+        const voiceIndex = config.voiceIndex % finnishFemaleVoices.length;
+        preferredVoice = finnishFemaleVoices[voiceIndex];
+      } else if (config.gender === 'male' && finnishMaleVoices.length > 0) {
+        // Use Finnish male voice based on persona index
+        const voiceIndex = config.voiceIndex % finnishMaleVoices.length;
+        preferredVoice = finnishMaleVoices[voiceIndex];
       }
 
-      // Fallback: try Finnish voices first, then English
+      // If no gender-specific Finnish voice, use any Finnish voice
+      if (!preferredVoice && finnishVoices.length > 0) {
+        const voiceIndex = config.voiceIndex % finnishVoices.length;
+        preferredVoice = finnishVoices[voiceIndex];
+      }
+
+      // Only fallback to English if no Finnish voices available
       if (!preferredVoice) {
-        preferredVoice = availableVoices.find(voice => voice.lang.startsWith('fi'));
-        if (!preferredVoice) {
-          preferredVoice = availableVoices.find(voice => voice.lang.startsWith('en'));
-        }
-        if (!preferredVoice && availableVoices.length > 0) {
+        const englishVoices = availableVoices.filter(voice => voice.lang.startsWith('en'));
+        if (englishVoices.length > 0) {
+          const voiceIndex = config.voiceIndex % englishVoices.length;
+          preferredVoice = englishVoices[voiceIndex];
+        } else if (availableVoices.length > 0) {
+          // Last resort: any available voice
           const voiceIndex = config.voiceIndex % availableVoices.length;
           preferredVoice = availableVoices[voiceIndex];
         }
@@ -1000,8 +1010,8 @@
         }
       } else {
         // Default settings
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
         utterance.volume = 0.9;
       }
       
