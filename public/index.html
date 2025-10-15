@@ -459,12 +459,16 @@
       
       <!-- NLP Info Button -->
       <div style="text-align: center; margin-bottom: var(--aurora-space-lg);">
-        <button id="nlpInfoBtn" class="aurora-btn aurora-btn-ghost" style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">
-          ℹ️ Mikä on NLP ja miten tietojani käsitellään?
-        </button>
-        <button id="voiceTestBtn" class="aurora-btn aurora-btn-ghost" style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; margin-left: 10px;">
-          🎤 Testaa ääni
-        </button>
+        <div class="aurora-card magnetic-card" style="display: inline-block; margin-right: 10px;">
+          <button id="nlpInfoBtn" class="aurora-btn aurora-btn-ghost magnetic-btn" style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">
+            ℹ️ Mikä on NLP ja miten tietojani käsitellään?
+          </button>
+        </div>
+        <div class="aurora-card magnetic-card" style="display: inline-block;">
+          <button id="voiceTestBtn" class="aurora-btn aurora-btn-ghost magnetic-btn" style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">
+            🎤 Testaa ääni
+          </button>
+        </div>
       </div>
       
       <!-- Session Controls -->
@@ -1367,11 +1371,15 @@
     aurora.applyTechnique('magnetic-buttons', elements.startSessionCard);
     aurora.applyTechnique('magnetic-buttons', elements.personaCard);
     aurora.applyTechnique('magnetic-buttons', elements.questionCard);
+    aurora.applyTechnique('magnetic-buttons', document.querySelector('#nlpInfoBtn').closest('.magnetic-card'));
+    aurora.applyTechnique('magnetic-buttons', document.querySelector('#voiceTestBtn').closest('.magnetic-card'));
     
     // Apply morphing cards technique
     aurora.applyTechnique('morphing-cards', elements.startSessionCard);
     aurora.applyTechnique('morphing-cards', elements.personaCard);
     aurora.applyTechnique('morphing-cards', elements.questionCard);
+    aurora.applyTechnique('morphing-cards', document.querySelector('#nlpInfoBtn').closest('.magnetic-card'));
+    aurora.applyTechnique('morphing-cards', document.querySelector('#voiceTestBtn').closest('.magnetic-card'));
     
     console.log('🌸 TerapiaAI initialized with Aurora UI - Magnetic Cards & Advanced Effects enabled');
   </script>
