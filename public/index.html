@@ -17,11 +17,11 @@
     .therapy-container {
       min-height: 100vh;
       background: linear-gradient(135deg, 
-        #667eea 0%, 
-        #764ba2 25%, 
-        #f093fb 50%, 
-        #f5576c 75%, 
-        #4facfe 100%);
+        #0f172a 0%, 
+        #1e293b 25%, 
+        #334155 50%, 
+        #475569 75%, 
+        #64748b 100%);
       position: relative;
       overflow: hidden;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -35,9 +35,9 @@
       width: 100%;
       height: 100%;
       background: 
-        radial-gradient(circle at 20% 80%, rgba(74, 158, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(147, 197, 253, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(96, 165, 250, 0.05) 0%, transparent 50%);
       z-index: -1;
       animation: cosmicFlow 20s ease-in-out infinite;
     }
@@ -59,12 +59,12 @@
       width: 120px;
       height: 120px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 3rem;
-      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
       animation: gentlePulse 3s ease-in-out infinite;
     }
     
@@ -72,12 +72,12 @@
       width: 80px;
       height: 80px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto var(--aurora-space-lg) auto;
-      box-shadow: 0 6px 24px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 6px 24px rgba(59, 130, 246, 0.3);
       animation: gentlePulse 3s ease-in-out infinite;
     }
     
@@ -107,11 +107,11 @@
       right: 0;
       bottom: 0;
       background: linear-gradient(45deg, 
-        rgba(102, 126, 234, 0.2) 0%, 
-        rgba(118, 75, 162, 0.2) 25%,
-        rgba(240, 147, 251, 0.2) 50%, 
-        rgba(245, 87, 108, 0.2) 75%,
-        rgba(79, 172, 254, 0.2) 100%);
+        rgba(30, 64, 175, 0.2) 0%, 
+        rgba(59, 130, 246, 0.2) 25%,
+        rgba(96, 165, 250, 0.2) 50%, 
+        rgba(147, 197, 253, 0.2) 75%,
+        rgba(191, 219, 254, 0.2) 100%);
       opacity: 0;
       transition: opacity 0.3s ease;
       z-index: -1;
@@ -211,25 +211,33 @@
     
     /* Magnetic Select */
     .magnetic-select {
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(0, 0, 0, 0.3);
+      color: #ffffff;
+      border: 2px solid rgba(255, 255, 255, 0.5);
       border-radius: var(--aurora-radius-md);
       padding: var(--aurora-space-sm) var(--aurora-space-md);
       width: 100%;
       transition: all 0.3s ease;
+      font-weight: 500;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     }
     
     .magnetic-select:hover {
-      background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.5);
+      background: rgba(0, 0, 0, 0.4);
+      border-color: rgba(255, 255, 255, 0.7);
     }
     
     .magnetic-select:focus {
       outline: none;
-      background: rgba(255, 255, 255, 0.2);
-      border-color: var(--aurora-primary);
-      box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.3);
+      background: rgba(0, 0, 0, 0.5);
+      border-color: #ffffff;
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+    
+    .magnetic-select option {
+      background: #1a1a2e;
+      color: #ffffff;
+      padding: 8px;
     }
     
     /* Magnetic Textarea */
@@ -429,7 +437,7 @@
           <!-- Face -->
           <circle cx="60" cy="45" r="22" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
           <!-- Body -->
-          <rect x="30" y="67" width="60" height="35" rx="17" fill="#a7f3d0" stroke="#10b981" stroke-width="2"/>
+          <rect x="30" y="67" width="60" height="35" rx="17" fill="#60a5fa" stroke="#3b82f6" stroke-width="2"/>
           <!-- Eyes -->
           <circle id="leftEye" cx="52" cy="42" r="3" fill="#111827"/>
           <circle id="rightEye" cx="68" cy="42" r="3" fill="#111827"/>
@@ -459,24 +467,6 @@
             </div>
           </button>
         </div>
-        
-        <div class="aurora-card magnetic-card hidden" id="pauseCard">
-          <button id="pauseBtn" class="aurora-btn aurora-btn-secondary magnetic-btn">
-            <div class="btn-content">
-              <div class="btn-icon">⏸️</div>
-              <div class="btn-text">Tauko</div>
-            </div>
-          </button>
-        </div>
-        
-        <div class="aurora-card magnetic-card hidden" id="endCard">
-          <button id="endBtn" class="aurora-btn aurora-btn-accent magnetic-btn">
-            <div class="btn-content">
-              <div class="btn-icon">✅</div>
-              <div class="btn-text">Lopeta</div>
-            </div>
-          </button>
-        </div>
       </div>
       
       <!-- Voice Controls -->
@@ -486,15 +476,6 @@
             <div class="btn-content">
               <div class="btn-icon">🎤</div>
               <div class="btn-text">Mikki: Päällä</div>
-            </div>
-          </button>
-        </div>
-        
-        <div class="aurora-card magnetic-card" id="voiceCard">
-          <button id="voiceBtn" class="aurora-btn aurora-btn-secondary magnetic-btn">
-            <div class="btn-content">
-              <div class="btn-icon">🔊</div>
-              <div class="btn-text">Ääni: Päällä</div>
             </div>
           </button>
         </div>
@@ -521,7 +502,7 @@
               <!-- Face -->
               <circle cx="60" cy="45" r="22" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
               <!-- Body -->
-              <rect x="30" y="67" width="60" height="35" rx="17" fill="#a7f3d0" stroke="#10b981" stroke-width="2"/>
+              <rect x="30" y="67" width="60" height="35" rx="17" fill="#60a5fa" stroke="#3b82f6" stroke-width="2"/>
               <!-- Eyes -->
               <circle id="leftEyeInline" cx="52" cy="42" r="3" fill="#111827"/>
               <circle id="rightEyeInline" cx="68" cy="42" r="3" fill="#111827"/>
@@ -783,15 +764,9 @@
       summaryScreen: document.getElementById('summaryScreen'),
       startSessionBtn: document.getElementById('startSessionBtn'),
       startSessionCard: document.getElementById('startSessionCard'),
-      pauseBtn: document.getElementById('pauseBtn'),
-      pauseCard: document.getElementById('pauseCard'),
-      endBtn: document.getElementById('endBtn'),
-      endCard: document.getElementById('endCard'),
       voiceControls: document.getElementById('voiceControls'),
       micBtn: document.getElementById('micBtn'),
       micCard: document.getElementById('micCard'),
-      voiceBtn: document.getElementById('voiceBtn'),
-      voiceCard: document.getElementById('voiceCard'),
       personaSelect: document.getElementById('personaSelect'),
       personaCard: document.getElementById('personaCard'),
       questionCard: document.getElementById('questionCard'),
@@ -904,8 +879,6 @@
         
         // Update UI
         elements.startSessionCard.classList.add('hidden');
-        elements.pauseCard.classList.remove('hidden');
-        elements.endCard.classList.remove('hidden');
         elements.voiceControls.classList.remove('hidden');
         elements.questionCard.classList.remove('hidden');
         elements.conversationLog.classList.remove('hidden');
@@ -1061,8 +1034,6 @@
       micOn = false;
       
       elements.startSessionCard.classList.remove('hidden');
-      elements.pauseCard.classList.add('hidden');
-      elements.endCard.classList.add('hidden');
       elements.voiceControls.classList.add('hidden');
       elements.questionCard.classList.add('hidden');
       elements.conversationLog.classList.add('hidden');
@@ -1082,7 +1053,6 @@
     elements.sendBtn.addEventListener('click', sendMessage);
     elements.skipBtn.addEventListener('click', skipQuestion);
     elements.nextBtn.addEventListener('click', nextQuestion);
-    elements.endBtn.addEventListener('click', endSession);
     elements.downloadSummaryBtn.addEventListener('click', downloadSummary);
     elements.newSessionBtn.addEventListener('click', () => {
       elements.summaryScreen.classList.add('hidden');
@@ -1104,13 +1074,6 @@
       }
     });
     
-    elements.voiceBtn.addEventListener('click', () => {
-      voiceOn = !voiceOn;
-      elements.voiceBtn.textContent = voiceOn ? '🔊 Ääni: Päällä' : '🔇 Ääni: Pois';
-      elements.voiceBtn.classList.toggle('aurora-btn-secondary', voiceOn);
-      elements.voiceBtn.classList.toggle('aurora-btn-accent', !voiceOn);
-    });
-    
     elements.personaSelect.addEventListener('change', (e) => {
       currentPersona = e.target.value;
       showNotification(`Persona vaihdettu: ${e.target.options[e.target.selectedIndex].text}`, 'info');
@@ -1129,19 +1092,13 @@
     
     // Apply Aurora magnetic card techniques
     aurora.applyTechnique('magnetic-buttons', elements.startSessionCard);
-    aurora.applyTechnique('magnetic-buttons', elements.pauseCard);
-    aurora.applyTechnique('magnetic-buttons', elements.endCard);
     aurora.applyTechnique('magnetic-buttons', elements.micCard);
-    aurora.applyTechnique('magnetic-buttons', elements.voiceCard);
     aurora.applyTechnique('magnetic-buttons', elements.personaCard);
     aurora.applyTechnique('magnetic-buttons', elements.questionCard);
     
     // Apply morphing cards technique
     aurora.applyTechnique('morphing-cards', elements.startSessionCard);
-    aurora.applyTechnique('morphing-cards', elements.pauseCard);
-    aurora.applyTechnique('morphing-cards', elements.endCard);
     aurora.applyTechnique('morphing-cards', elements.micCard);
-    aurora.applyTechnique('morphing-cards', elements.voiceCard);
     aurora.applyTechnique('morphing-cards', elements.personaCard);
     aurora.applyTechnique('morphing-cards', elements.questionCard);
     
