@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kalle Kotipsykiatri - Consciousness-Aware Therapy AI</title>
+  <title>TerapiaAI - Consciousness-Aware Therapy Assistant</title>
   
   <!-- Aurora UI Library -->
   <link rel="stylesheet" href="aurora-ui-library.css">
@@ -450,12 +450,19 @@
       </div>
       
       <h1 style="color: var(--aurora-white); text-align: center; margin-bottom: var(--aurora-space-lg);">
-        Kalle Kotipsykiatri
+        TerapiaAI
       </h1>
       
       <p style="color: rgba(255, 255, 255, 0.8); text-align: center; max-width: 500px;">
         Tervetuloa henkilökohtaiseen terapiakeskusteluun. Tietosi pysyvät tällä laitteella.
       </p>
+      
+      <!-- NLP Info Button -->
+      <div style="text-align: center; margin-bottom: var(--aurora-space-lg);">
+        <button id="nlpInfoBtn" class="aurora-btn aurora-btn-ghost" style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">
+          ℹ️ Mikä on NLP ja miten tietojani käsitellään?
+        </button>
+      </div>
       
       <!-- Session Controls -->
       <div class="session-controls">
@@ -471,23 +478,16 @@
       
       <!-- Voice Controls -->
       <div id="voiceControls" class="session-controls hidden">
-        <div class="aurora-card magnetic-card" id="micCard">
-          <button id="micBtn" class="aurora-btn aurora-btn-accent magnetic-btn">
-            <div class="btn-content">
-              <div class="btn-icon">🎤</div>
-              <div class="btn-text">Mikki: Päällä</div>
-            </div>
-          </button>
-        </div>
-        
         <div class="aurora-card magnetic-card" id="personaCard">
           <div class="card-content">
             <label class="card-label">AI Persona</label>
             <select id="personaSelect" class="aurora-select magnetic-select">
-              <option value="empathetic">Myötätuntoinen Terapeutti</option>
-              <option value="gentle">Lempeä Ohjaaja</option>
-              <option value="wise">Viisas Mentor</option>
-              <option value="supportive">Tukeva Ystävä</option>
+              <option value="carl_rogers">Carl Rogers - Henkilökeskeinen</option>
+              <option value="freud">Freud - Psykoanalyytikko</option>
+              <option value="jung">Jung - Analyyttinen</option>
+              <option value="cbt">CBT - Kognitiivinen</option>
+              <option value="gestalt">Gestalt - Kokemuksellinen</option>
+              <option value="existential">Eksistentiaalinen</option>
             </select>
           </div>
         </div>
@@ -538,6 +538,15 @@
                   <div class="btn-content">
                     <div class="btn-icon">💬</div>
                     <div class="btn-text">Lähetä Vastaus</div>
+                  </div>
+                </button>
+              </div>
+              
+              <div class="aurora-card magnetic-card action-card">
+                <button id="micBtn" class="aurora-btn aurora-btn-accent magnetic-btn">
+                  <div class="btn-content">
+                    <div class="btn-icon">🎤</div>
+                    <div class="btn-text">Puhu</div>
                   </div>
                 </button>
               </div>
@@ -609,6 +618,55 @@
     </div>
   </div>
 
+  <!-- NLP Info Modal -->
+  <div id="nlpInfoModal" class="aurora-modal">
+    <div class="aurora-modal__backdrop"></div>
+    <div class="aurora-modal__content aurora-modal__content--medium">
+      <div class="aurora-modal__header">
+        <h2 class="aurora-modal__title">Mikä on NLP ja tietojen käsittely</h2>
+        <button class="aurora-modal__close" id="closeNlpModal">&times;</button>
+      </div>
+      <div class="aurora-modal__body">
+        <h3>Mikä on NLP (Natural Language Processing)?</h3>
+        <p>NLP on tekoälyn osa-alue, joka mahdollistaa tietokoneiden ymmärtää ja käsitellä ihmisten kieltä. TerapiaAI käyttää NLP:ää:</p>
+        <ul>
+          <li><strong>Ymmärtämään</strong> vastauksesi ja tunnistamaan tärkeimmät teemat</li>
+          <li><strong>Generoimaan</strong> henkilökohtaisia terapeuttisia vastauksia</li>
+          <li><strong>Analysoimaan</strong> keskustelun tunnelmaa ja kehitystä</li>
+          <li><strong>Luomaan</strong> sessioiden yhteenvetoja</li>
+        </ul>
+        
+        <h3>Miten tietojasi käsitellään?</h3>
+        <p><strong>🔒 Tietoturvallisuus:</strong></p>
+        <ul>
+          <li>Kaikki keskustelut pysyvät <strong>tällä laitteella</strong></li>
+          <li>Tietoja ei tallenneta ulkoisiin palvelimiin</li>
+          <li>Keskustelut eivät jää pysyvästi tallennettuina</li>
+          <li>API-kutsut tehdään salatusti HTTPS:n kautta</li>
+        </ul>
+        
+        <p><strong>🤖 AI-käsittely:</strong></p>
+        <ul>
+          <li>Vastauksesi lähetetään OpenRouter-palvelun kautta AI-mallille</li>
+          <li>AI generoi vastauksen perustuen valittuun terapiateoriaan</li>
+          <li>Keskusteluhistoria käytetään kontekstin ymmärtämiseen</li>
+          <li>Yhteenveto luodaan sessioiden lopuksi</li>
+        </ul>
+        
+        <p><strong>📊 Anonymiteetti:</strong></p>
+        <ul>
+          <li>Henkilöllisyytesi ei tallenneta</li>
+          <li>Keskustelut eivät linkity henkilökohtaisiin tietoihin</li>
+          <li>Kaikki data on anonymisoitua</li>
+        </ul>
+        
+        <p style="margin-top: 20px; padding: 15px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 4px solid #3b82f6;">
+          <strong>💡 Vinkki:</strong> TerapiaAI on apuväline, ei korvaa ammattimaista terapiaa. Jos tarvitset kriisitukea, ota yhteyttä ammattilaisiin.
+        </p>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Initialize Aurora UI
     const aurora = new AuroraUILibrary({
@@ -626,7 +684,7 @@
     let micOn = true;
     let voiceOn = true;
     let recognition = null;
-    let currentPersona = 'empathetic';
+    let currentPersona = 'carl_rogers';
     
     // Voice and Speech Recognition
     function initSpeechRecognition() {
@@ -643,14 +701,14 @@
       
       recognition.onstart = () => {
         micOn = true;
-        elements.micBtn.querySelector('.btn-text').textContent = 'Mikki: Päällä';
+        elements.micBtn.querySelector('.btn-text').textContent = 'Puhu';
         elements.micBtn.classList.add('aurora-btn-accent');
         setTherapistExpression('listening');
       };
       
       recognition.onend = () => {
         micOn = false;
-        elements.micBtn.querySelector('.btn-text').textContent = 'Mikki: Pois';
+        elements.micBtn.querySelector('.btn-text').textContent = 'Puhu';
         elements.micBtn.classList.remove('aurora-btn-accent');
         setTherapistExpression('neutral');
       };
@@ -664,7 +722,7 @@
       recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         micOn = false;
-        elements.micBtn.querySelector('.btn-text').textContent = 'Mikki: Pois';
+        elements.micBtn.querySelector('.btn-text').textContent = 'Puhu';
         elements.micBtn.classList.remove('aurora-btn-accent');
       };
       
@@ -750,12 +808,14 @@
       'Minkälaista tukea tarvitsette?'
     ];
 
-    // Persona system prompts
+    // Persona system prompts - Based on real therapy approaches
     const personaPrompts = {
-      empathetic: 'Olet myötätuntoinen terapeutti. Anna lyhyt, ymmärtävä vastaus (1-2 lausetta) käyttäjän vastaukseen terapiakysymykseen. Älä kysy jatkokysymyksiä, vaan anna tukea ja ymmärrystä.',
-      gentle: 'Olet lempeä ohjaaja. Anna rauhallinen, kannustava vastaus (1-2 lausetta) käyttäjän vastaukseen. Käytä pehmeää kieltä ja anna turvallinen tila.',
-      wise: 'Olet viisas mentor. Anna syvällinen, viisas vastaus (1-2 lausetta) käyttäjän vastaukseen. Tarjoa näkökulmia ja viisautta.',
-      supportive: 'Olet tukeva ystävä. Anna lämmittävä, kannustava vastaus (1-2 lausetta) käyttäjän vastaukseen. Näytä että kuulet ja ymmärrät.'
+      carl_rogers: 'Olet Carl Rogers -henkilökeskeinen terapeutti. Käytä aktiivista kuuntelua, peilaile tunteita ja anna ehdottoman positiivista katsetta. Anna lyhyt, ymmärtävä vastaus (1-2 lausetta).',
+      freud: 'Olet Freud-tyylinen psykoanalyytikko. Tutki alitajuntaisia motiiveja ja lapsuuden kokemuksia. Anna syvällinen, analyyttinen vastaus (1-2 lausetta).',
+      jung: 'Olet Jung-tyylinen analyyttinen terapeutti. Tutki arkkityyppejä, unia ja henkilökohtaista kehitystä. Anna viisas, symbolinen vastaus (1-2 lausetta).',
+      cbt: 'Olet CBT-kognitiivinen terapeutti. Tutki ajatusmalleja ja käyttäytymisympyrää. Anna käytännöllinen, ratkaisukeskeinen vastaus (1-2 lausetta).',
+      gestalt: 'Olet Gestalt-kokemuksellinen terapeutti. Keskity nykyhetkeen ja kehon tuntemuksiin. Anna elävä, kokemuksellinen vastaus (1-2 lausetta).',
+      existential: 'Olet eksistentiaalinen terapeutti. Tutki elämän merkitystä, vapautta ja vastuuta. Anna syvällinen, filosofinen vastaus (1-2 lausetta).'
     };
 
     // DOM elements
@@ -766,7 +826,6 @@
       startSessionCard: document.getElementById('startSessionCard'),
       voiceControls: document.getElementById('voiceControls'),
       micBtn: document.getElementById('micBtn'),
-      micCard: document.getElementById('micCard'),
       personaSelect: document.getElementById('personaSelect'),
       personaCard: document.getElementById('personaCard'),
       questionCard: document.getElementById('questionCard'),
@@ -781,7 +840,10 @@
       therapyAvatar: document.getElementById('therapyAvatar'),
       summaryContent: document.getElementById('summaryContent'),
       downloadSummaryBtn: document.getElementById('downloadSummaryBtn'),
-      newSessionBtn: document.getElementById('newSessionBtn')
+      newSessionBtn: document.getElementById('newSessionBtn'),
+      nlpInfoBtn: document.getElementById('nlpInfoBtn'),
+      nlpInfoModal: document.getElementById('nlpInfoModal'),
+      closeNlpModal: document.getElementById('closeNlpModal')
     };
 
     // Initialize progress indicator
@@ -1040,12 +1102,21 @@
       elements.summaryScreen.classList.add('hidden');
       
       elements.messagesContainer.innerHTML = '';
-      elements.micBtn.querySelector('.btn-text').textContent = 'Mikki: Päällä';
+      elements.micBtn.querySelector('.btn-text').textContent = 'Puhu';
       elements.micBtn.classList.add('aurora-btn-accent');
       
       setTherapistExpression('neutral');
       
       showNotification('Sessio päättynyt.', 'info');
+    }
+
+    // Modal functions
+    function openNlpModal() {
+      elements.nlpInfoModal.classList.add('aurora-modal--open');
+    }
+    
+    function closeNlpModal() {
+      elements.nlpInfoModal.classList.remove('aurora-modal--open');
     }
 
     // Event listeners
@@ -1058,6 +1129,13 @@
       elements.summaryScreen.classList.add('hidden');
       elements.sessionScreen.classList.remove('hidden');
       startSession();
+    });
+    
+    // NLP Info Modal
+    elements.nlpInfoBtn.addEventListener('click', openNlpModal);
+    elements.closeNlpModal.addEventListener('click', closeNlpModal);
+    elements.nlpInfoModal.addEventListener('click', (e) => {
+      if (e.target === elements.nlpInfoModal) closeNlpModal();
     });
     
     // Voice controls
@@ -1092,17 +1170,15 @@
     
     // Apply Aurora magnetic card techniques
     aurora.applyTechnique('magnetic-buttons', elements.startSessionCard);
-    aurora.applyTechnique('magnetic-buttons', elements.micCard);
     aurora.applyTechnique('magnetic-buttons', elements.personaCard);
     aurora.applyTechnique('magnetic-buttons', elements.questionCard);
     
     // Apply morphing cards technique
     aurora.applyTechnique('morphing-cards', elements.startSessionCard);
-    aurora.applyTechnique('morphing-cards', elements.micCard);
     aurora.applyTechnique('morphing-cards', elements.personaCard);
     aurora.applyTechnique('morphing-cards', elements.questionCard);
     
-    console.log('🌸 Kalle Kotipsykiatri initialized with Aurora UI - Magnetic Cards & Advanced Effects enabled');
+    console.log('🌸 TerapiaAI initialized with Aurora UI - Magnetic Cards & Advanced Effects enabled');
   </script>
 </body>
 </html>
