@@ -495,6 +495,8 @@
               <option value="cbt">CBT - Kognitiivinen</option>
               <option value="gestalt">Gestalt - Kokemuksellinen</option>
               <option value="existential">Eksistentiaalinen</option>
+              <option value="virginia_satir">Virginia Satir - Perheterapeutti</option>
+              <option value="marsha_linehan">Marsha Linehan - DBT-terapeutti</option>
             </select>
           </div>
         </div>
@@ -778,51 +780,75 @@
     const voiceConfigs = {
       carl_rogers: {
         name: 'Carl Rogers',
+        gender: 'male',
         rate: 0.8,
-        pitch: 1.1,
+        pitch: 0.9,
         volume: 0.9,
-        voiceIndex: 0, // Will be set dynamically
+        voiceIndex: 0,
         description: 'Warm, empathetic, person-centered'
       },
       freud: {
         name: 'Freud',
+        gender: 'male',
         rate: 0.7,
-        pitch: 0.9,
+        pitch: 0.85,
         volume: 0.8,
         voiceIndex: 1,
         description: 'Deep, analytical, psychoanalytic'
       },
       jung: {
         name: 'Jung',
+        gender: 'male',
         rate: 0.75,
-        pitch: 1.0,
+        pitch: 0.9,
         volume: 0.85,
         voiceIndex: 2,
         description: 'Wise, symbolic, analytical'
       },
       cbt: {
         name: 'CBT',
+        gender: 'male',
         rate: 0.9,
-        pitch: 1.2,
+        pitch: 1.0,
         volume: 0.9,
         voiceIndex: 3,
         description: 'Clear, practical, solution-focused'
       },
       gestalt: {
         name: 'Gestalt',
+        gender: 'male',
         rate: 0.85,
-        pitch: 1.05,
+        pitch: 0.95,
         volume: 0.88,
         voiceIndex: 4,
         description: 'Present-focused, experiential'
       },
       existential: {
         name: 'Existential',
+        gender: 'male',
         rate: 0.7,
-        pitch: 0.95,
+        pitch: 0.9,
         volume: 0.8,
         voiceIndex: 5,
         description: 'Philosophical, deep, meaningful'
+      },
+      virginia_satir: {
+        name: 'Virginia Satir',
+        gender: 'female',
+        rate: 0.8,
+        pitch: 1.1,
+        volume: 0.9,
+        voiceIndex: 6,
+        description: 'Warm, family-focused, systemic'
+      },
+      marsha_linehan: {
+        name: 'Marsha Linehan',
+        gender: 'female',
+        rate: 0.85,
+        pitch: 1.15,
+        volume: 0.88,
+        voiceIndex: 7,
+        description: 'Compassionate, dialectical, mindfulness-based'
       }
     };
 
@@ -856,9 +882,9 @@
         const voice = getVoiceForPersona(persona);
         const config = voiceConfigs[persona];
         if (voice) {
-          console.log(`  ${config.name}: ${voice.name} (${voice.lang}) - Rate: ${config.rate}, Pitch: ${config.pitch}`);
+          console.log(`  ${config.name} (${config.gender}): ${voice.name} (${voice.lang}) - Rate: ${config.rate}, Pitch: ${config.pitch}`);
         } else {
-          console.log(`  ${config.name}: No voice available`);
+          console.log(`  ${config.name} (${config.gender}): No voice available`);
         }
       });
     }
@@ -887,33 +913,45 @@
       const config = voiceConfigs[persona];
       if (!config) return null;
 
-      // Try to find Finnish voices first, then English, then any available
-      let preferredVoice = availableVoices.find(voice => 
-        voice.lang.startsWith('fi') && voice.name.toLowerCase().includes('female')
+      // Separate male and female voices
+      const maleVoices = availableVoices.filter(voice => 
+        voice.name.toLowerCase().includes('male') || 
+        voice.name.toLowerCase().includes('david') ||
+        voice.name.toLowerCase().includes('mark') ||
+        voice.name.toLowerCase().includes('male') ||
+        voice.name.toLowerCase().includes('man')
       );
       
-      if (!preferredVoice) {
-        preferredVoice = availableVoices.find(voice => 
-          voice.lang.startsWith('fi')
-        );
+      const femaleVoices = availableVoices.filter(voice => 
+        voice.name.toLowerCase().includes('female') || 
+        voice.name.toLowerCase().includes('heidi') ||
+        voice.name.toLowerCase().includes('susan') ||
+        voice.name.toLowerCase().includes('female') ||
+        voice.name.toLowerCase().includes('woman')
+      );
+
+      let preferredVoice = null;
+
+      if (config.gender === 'female' && femaleVoices.length > 0) {
+        // Use female voice based on persona index
+        const voiceIndex = config.voiceIndex % femaleVoices.length;
+        preferredVoice = femaleVoices[voiceIndex];
+      } else if (config.gender === 'male' && maleVoices.length > 0) {
+        // Use male voice based on persona index
+        const voiceIndex = config.voiceIndex % maleVoices.length;
+        preferredVoice = maleVoices[voiceIndex];
       }
-      
+
+      // Fallback: try Finnish voices first, then English
       if (!preferredVoice) {
-        preferredVoice = availableVoices.find(voice => 
-          voice.lang.startsWith('en') && voice.name.toLowerCase().includes('female')
-        );
-      }
-      
-      if (!preferredVoice) {
-        preferredVoice = availableVoices.find(voice => 
-          voice.lang.startsWith('en')
-        );
-      }
-      
-      if (!preferredVoice && availableVoices.length > 0) {
-        // Use voice based on persona index, cycling through available voices
-        const voiceIndex = config.voiceIndex % availableVoices.length;
-        preferredVoice = availableVoices[voiceIndex];
+        preferredVoice = availableVoices.find(voice => voice.lang.startsWith('fi'));
+        if (!preferredVoice) {
+          preferredVoice = availableVoices.find(voice => voice.lang.startsWith('en'));
+        }
+        if (!preferredVoice && availableVoices.length > 0) {
+          const voiceIndex = config.voiceIndex % availableVoices.length;
+          preferredVoice = availableVoices[voiceIndex];
+        }
       }
 
       return preferredVoice;
@@ -992,7 +1030,9 @@
       jung: 'Olet Jung-tyylinen analyyttinen terapeutti. Tutki arkkityyppejä, unia ja henkilökohtaista kehitystä. Anna viisas, symbolinen vastaus (1-2 lausetta).',
       cbt: 'Olet CBT-kognitiivinen terapeutti. Tutki ajatusmalleja ja käyttäytymisympyrää. Anna käytännöllinen, ratkaisukeskeinen vastaus (1-2 lausetta).',
       gestalt: 'Olet Gestalt-kokemuksellinen terapeutti. Keskity nykyhetkeen ja kehon tuntemuksiin. Anna elävä, kokemuksellinen vastaus (1-2 lausetta).',
-      existential: 'Olet eksistentiaalinen terapeutti. Tutki elämän merkitystä, vapautta ja vastuuta. Anna syvällinen, filosofinen vastaus (1-2 lausetta).'
+      existential: 'Olet eksistentiaalinen terapeutti. Tutki elämän merkitystä, vapautta ja vastuuta. Anna syvällinen, filosofinen vastaus (1-2 lausetta).',
+      virginia_satir: 'Olet Virginia Satir -perheterapeutti. Keskity perhesuhteisiin, kommunikaatioon ja perheen voimaan. Anna lämmittävä, perhekeskeinen vastaus (1-2 lausetta).',
+      marsha_linehan: 'Olet Marsha Linehan -DBT-terapeutti. Käytä dialektista käyttäytymisterapiaa, mindfulnessia ja emotionaalista säätelyä. Anna myötätuntoinen, tasapainottava vastaus (1-2 lausetta).'
     };
 
     // DOM elements
