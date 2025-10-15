@@ -462,6 +462,9 @@
         <button id="nlpInfoBtn" class="aurora-btn aurora-btn-ghost" style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">
           ℹ️ Mikä on NLP ja miten tietojani käsitellään?
         </button>
+        <button id="voiceTestBtn" class="aurora-btn aurora-btn-ghost" style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; margin-left: 10px;">
+          🎤 Testaa ääni
+        </button>
       </div>
       
       <!-- Session Controls -->
@@ -767,7 +770,152 @@
       }
     }
     
-    // Text-to-Speech
+    // Voice configurations for each persona
+    const voiceConfigs = {
+      carl_rogers: {
+        name: 'Carl Rogers',
+        rate: 0.8,
+        pitch: 1.1,
+        volume: 0.9,
+        voiceIndex: 0, // Will be set dynamically
+        description: 'Warm, empathetic, person-centered'
+      },
+      freud: {
+        name: 'Freud',
+        rate: 0.7,
+        pitch: 0.9,
+        volume: 0.8,
+        voiceIndex: 1,
+        description: 'Deep, analytical, psychoanalytic'
+      },
+      jung: {
+        name: 'Jung',
+        rate: 0.75,
+        pitch: 1.0,
+        volume: 0.85,
+        voiceIndex: 2,
+        description: 'Wise, symbolic, analytical'
+      },
+      cbt: {
+        name: 'CBT',
+        rate: 0.9,
+        pitch: 1.2,
+        volume: 0.9,
+        voiceIndex: 3,
+        description: 'Clear, practical, solution-focused'
+      },
+      gestalt: {
+        name: 'Gestalt',
+        rate: 0.85,
+        pitch: 1.05,
+        volume: 0.88,
+        voiceIndex: 4,
+        description: 'Present-focused, experiential'
+      },
+      existential: {
+        name: 'Existential',
+        rate: 0.7,
+        pitch: 0.95,
+        volume: 0.8,
+        voiceIndex: 5,
+        description: 'Philosophical, deep, meaningful'
+      }
+    };
+
+    // Available voices
+    let availableVoices = [];
+    let currentVoiceIndex = 0;
+
+    // Initialize voices
+    function initVoices() {
+      // Load voices when they become available
+      if (speechSynthesis.getVoices().length > 0) {
+        availableVoices = speechSynthesis.getVoices();
+        console.log('🎤 Available voices:', availableVoices.length);
+        console.log('🎤 Voices:', availableVoices.map(v => `${v.name} (${v.lang})`));
+        logVoiceAssignments();
+      } else {
+        // Wait for voices to load
+        speechSynthesis.addEventListener('voiceschanged', () => {
+          availableVoices = speechSynthesis.getVoices();
+          console.log('🎤 Available voices loaded:', availableVoices.length);
+          console.log('🎤 Voices:', availableVoices.map(v => `${v.name} (${v.lang})`));
+          logVoiceAssignments();
+        });
+      }
+    }
+
+    // Log voice assignments for each persona
+    function logVoiceAssignments() {
+      console.log('🎤 Voice assignments:');
+      Object.keys(voiceConfigs).forEach(persona => {
+        const voice = getVoiceForPersona(persona);
+        const config = voiceConfigs[persona];
+        if (voice) {
+          console.log(`  ${config.name}: ${voice.name} (${voice.lang}) - Rate: ${config.rate}, Pitch: ${config.pitch}`);
+        } else {
+          console.log(`  ${config.name}: No voice available`);
+        }
+      });
+    }
+
+    // Test voice for current persona
+    function testCurrentVoice() {
+      if (availableVoices.length === 0) {
+        showNotification('Äänet eivät ole vielä ladattu. Odota hetki.', 'warning');
+        return;
+      }
+      
+      const config = voiceConfigs[currentPersona];
+      const voice = getVoiceForPersona(currentPersona);
+      
+      if (voice && config) {
+        const testPhrase = `Hei, olen ${config.name}. Tämä on testi äänestäni.`;
+        speakText(testPhrase);
+        showNotification(`Testataan ${config.name} -äänen: ${voice.name}`, 'info');
+      } else {
+        showNotification('Ääntä ei löytynyt tälle personalle.', 'error');
+      }
+    }
+
+    // Get voice for current persona
+    function getVoiceForPersona(persona) {
+      const config = voiceConfigs[persona];
+      if (!config) return null;
+
+      // Try to find Finnish voices first, then English, then any available
+      let preferredVoice = availableVoices.find(voice => 
+        voice.lang.startsWith('fi') && voice.name.toLowerCase().includes('female')
+      );
+      
+      if (!preferredVoice) {
+        preferredVoice = availableVoices.find(voice => 
+          voice.lang.startsWith('fi')
+        );
+      }
+      
+      if (!preferredVoice) {
+        preferredVoice = availableVoices.find(voice => 
+          voice.lang.startsWith('en') && voice.name.toLowerCase().includes('female')
+        );
+      }
+      
+      if (!preferredVoice) {
+        preferredVoice = availableVoices.find(voice => 
+          voice.lang.startsWith('en')
+        );
+      }
+      
+      if (!preferredVoice && availableVoices.length > 0) {
+        // Use voice based on persona index, cycling through available voices
+        const voiceIndex = config.voiceIndex % availableVoices.length;
+        preferredVoice = availableVoices[voiceIndex];
+      }
+
+      return preferredVoice;
+    }
+
+    // Text-to-Speech with persona-specific voice
     function speakText(text) {
       if (!voiceOn) return;
       
@@ -777,18 +925,43 @@
       
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'fi-FI';
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
+      
+      // Get voice configuration for current persona
+      const config = voiceConfigs[currentPersona];
+      if (config) {
+        utterance.rate = config.rate;
+        utterance.pitch = config.pitch;
+        utterance.volume = config.volume;
+        
+        // Set specific voice
+        const voice = getVoiceForPersona(currentPersona);
+        if (voice) {
+          utterance.voice = voice;
+          console.log(`🎤 Speaking as ${config.name} using voice: ${voice.name}`);
+        }
+      } else {
+        // Default settings
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        utterance.volume = 0.9;
+      }
       
       utterance.onstart = () => {
         setTherapistExpression('talking');
+        console.log(`🎤 Started speaking as ${voiceConfigs[currentPersona]?.name || 'Default'}`);
       };
       
       utterance.onend = () => {
         setTherapistExpression('empathetic');
+        console.log(`🎤 Finished speaking as ${voiceConfigs[currentPersona]?.name || 'Default'}`);
         if (micOn && recognition) {
           setTimeout(() => recognition.start(), 500);
         }
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event.error);
+        setTherapistExpression('neutral');
       };
       
       speechSynthesis.speak(utterance);
@@ -843,7 +1016,8 @@
       newSessionBtn: document.getElementById('newSessionBtn'),
       nlpInfoBtn: document.getElementById('nlpInfoBtn'),
       nlpInfoModal: document.getElementById('nlpInfoModal'),
-      closeNlpModal: document.getElementById('closeNlpModal')
+      closeNlpModal: document.getElementById('closeNlpModal'),
+      voiceTestBtn: document.getElementById('voiceTestBtn')
     };
 
     // Initialize progress indicator
@@ -1138,6 +1312,9 @@
       if (e.target === elements.nlpInfoModal) closeNlpModal();
     });
     
+    // Voice Test Button
+    elements.voiceTestBtn.addEventListener('click', testCurrentVoice);
+    
     // Voice controls
     elements.micBtn.addEventListener('click', () => {
       if (!recognition) {
@@ -1154,7 +1331,24 @@
     
     elements.personaSelect.addEventListener('change', (e) => {
       currentPersona = e.target.value;
-      showNotification(`Persona vaihdettu: ${e.target.options[e.target.selectedIndex].text}`, 'info');
+      const personaName = e.target.options[e.target.selectedIndex].text;
+      const voiceConfig = voiceConfigs[currentPersona];
+      
+      // Show notification with voice info
+      let notificationText = `Persona vaihdettu: ${personaName}`;
+      if (voiceConfig) {
+        notificationText += ` (${voiceConfig.description})`;
+      }
+      
+      showNotification(notificationText, 'info');
+      
+      // Test the new voice with a sample phrase
+      if (voiceOn && availableVoices.length > 0) {
+        setTimeout(() => {
+          const testPhrase = "Tervetuloa terapiakeskusteluun.";
+          speakText(testPhrase);
+        }, 500);
+      }
     });
 
     // Enter key to send message
@@ -1167,6 +1361,7 @@
 
     // Initialize
     initProgressIndicator();
+    initVoices();
     
     // Apply Aurora magnetic card techniques
     aurora.applyTechnique('magnetic-buttons', elements.startSessionCard);
