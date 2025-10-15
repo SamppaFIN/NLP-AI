@@ -862,14 +862,24 @@
       if (speechSynthesis.getVoices().length > 0) {
         availableVoices = speechSynthesis.getVoices();
         console.log('🎤 Available voices:', availableVoices.length);
-        console.log('🎤 Voices:', availableVoices.map(v => `${v.name} (${v.lang})`));
+        console.log('🎤 All voices:', availableVoices.map(v => `${v.name} (${v.lang})`));
+        
+        // Show Finnish voices specifically
+        const finnishVoices = availableVoices.filter(v => v.lang.startsWith('fi'));
+        console.log('🇫🇮 Finnish voices:', finnishVoices.map(v => `${v.name} (${v.lang})`));
+        
         logVoiceAssignments();
       } else {
         // Wait for voices to load
         speechSynthesis.addEventListener('voiceschanged', () => {
           availableVoices = speechSynthesis.getVoices();
           console.log('🎤 Available voices loaded:', availableVoices.length);
-          console.log('🎤 Voices:', availableVoices.map(v => `${v.name} (${v.lang})`));
+          console.log('🎤 All voices:', availableVoices.map(v => `${v.name} (${v.lang})`));
+          
+          // Show Finnish voices specifically
+          const finnishVoices = availableVoices.filter(v => v.lang.startsWith('fi'));
+          console.log('🇫🇮 Finnish voices:', finnishVoices.map(v => `${v.name} (${v.lang})`));
+          
           logVoiceAssignments();
         });
       }
@@ -903,6 +913,10 @@
         const testPhrase = `Hei, olen ${config.name}. Tämä on testi äänestäni.`;
         speakText(testPhrase);
         showNotification(`Testataan ${config.name} -äänen: ${voice.name}`, 'info');
+        
+        // Also log all Finnish voices for debugging
+        const finnishVoices = availableVoices.filter(v => v.lang.startsWith('fi'));
+        console.log('🇫🇮 Available Finnish voices for debugging:', finnishVoices.map(v => `${v.name} (${v.lang})`));
       } else {
         showNotification('Ääntä ei löytynyt tälle personalle.', 'error');
       }
@@ -926,6 +940,9 @@
         voice.name.toLowerCase().includes('female') || 
         voice.name.toLowerCase().includes('heidi') ||
         voice.name.toLowerCase().includes('susan') ||
+        voice.name.toLowerCase().includes('anna') ||
+        voice.name.toLowerCase().includes('maria') ||
+        voice.name.toLowerCase().includes('helen') ||
         voice.name.toLowerCase().includes('female') ||
         voice.name.toLowerCase().includes('woman')
       );
