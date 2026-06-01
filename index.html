@@ -151,7 +151,16 @@
       cursor: pointer;
       position: relative;
       overflow: hidden;
+      pointer-events: none;
     }
+
+    .magnetic-card .aurora-btn,
+    .magnetic-card .magnetic-select,
+    .magnetic-card .magnetic-textarea,
+    .magnetic-card button,
+    .magnetic-card select,
+    .magnetic-card textarea,
+    .magnetic-card input { pointer-events: auto; }
 
     .magnetic-card::before {
       content: '';
