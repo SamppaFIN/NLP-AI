@@ -1,0 +1,1410 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TerapiaAI — GitHub Pages</title>
+
+  <!-- Aurora UI Library -->
+  <link rel="stylesheet" href="aurora-ui-library.css" />
+  <script src="aurora-ui-library.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --aurora-primary: #3b82f6;
+      --aurora-secondary: #10b981;
+      --aurora-accent: #ef4444;
+      --aurora-white: #ffffff;
+      --aurora-radius-sm: 8px;
+      --aurora-radius-md: 12px;
+      --aurora-radius-lg: 20px;
+      --aurora-space-sm: 8px;
+      --aurora-space-md: 16px;
+      --aurora-space-lg: 24px;
+      --aurora-space-xl: 40px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .therapy-container {
+      min-height: 100vh;
+      background: linear-gradient(135deg,
+        #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%);
+      position: relative;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .therapy-container::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background:
+        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(147, 197, 253, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(96, 165, 250, 0.05) 0%, transparent 50%);
+      z-index: -1;
+      animation: cosmicFlow 20s ease-in-out infinite;
+    }
+
+    @keyframes cosmicFlow {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(-20px, -20px) rotate(1deg); }
+    }
+
+    /* ── Layout ── */
+    .session-flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--aurora-space-lg);
+      padding: var(--aurora-space-xl);
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+      position: fixed;
+      top: 16px; right: 16px;
+      display: flex;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .status-badge {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .status-badge.ai { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+    .status-badge.demo { background: rgba(234, 179, 8, 0.2); color: #eab308; }
+    .status-badge.error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+    .settings-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    .settings-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: rotate(30deg);
+    }
+
+    /* ── Avatar ── */
+    .therapy-avatar {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+      animation: gentlePulse 3s ease-in-out infinite;
+      overflow: hidden;
+    }
+
+    .therapy-avatar-inline {
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e40af, #3b82f6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto var(--aurora-space-md) auto;
+      box-shadow: 0 6px 24px rgba(59, 130, 246, 0.3);
+      animation: gentlePulse 3s ease-in-out infinite;
+      overflow: hidden;
+    }
+
+    @keyframes gentlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* ── Cards ── */
+    .magnetic-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--aurora-radius-lg);
+      padding: var(--aurora-space-lg);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .magnetic-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(45deg,
+        rgba(30, 64, 175, 0.15) 0%, rgba(59, 130, 246, 0.15) 50%, rgba(96, 165, 250, 0.15) 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 0;
+    }
+
+    .magnetic-card:hover::before { opacity: 1; }
+    .magnetic-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .card-content { position: relative; z-index: 1; }
+
+    /* ── Buttons ── */
+    .aurora-btn {
+      border: none;
+      border-radius: var(--aurora-radius-md);
+      padding: 12px 24px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: white;
+      width: 100%;
+    }
+
+    .aurora-btn-primary { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+    .aurora-btn-primary:hover { background: linear-gradient(135deg, #1d4ed8, #2563eb); transform: translateY(-2px); }
+
+    .aurora-btn-cosmic {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+      background-size: 200% 200%;
+      animation: cosmicShimmer 3s ease-in-out infinite;
+    }
+    .aurora-btn-cosmic:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4); }
+
+    .aurora-btn-success { background: linear-gradient(135deg, #059669, #10b981); }
+    .aurora-btn-accent { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    .aurora-btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .aurora-btn-ghost:hover { background: rgba(255, 255, 255, 0.1); }
+
+    @keyframes cosmicShimmer {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .btn-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-icon { font-size: 1.4rem; transition: transform 0.3s; }
+    .btn-text { font-size: 0.85rem; }
+
+    .aurora-btn:hover .btn-icon { transform: scale(1.15) rotate(3deg); }
+
+    /* ── Select & Textarea ── */
+    .magnetic-select {
+      background: rgba(0, 0, 0, 0.3);
+      color: #ffffff;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: var(--aurora-radius-md);
+      padding: 8px 16px;
+      width: 100%;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .magnetic-select:hover { border-color: rgba(255, 255, 255, 0.7); }
+    .magnetic-select:focus {
+      outline: none;
+      border-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+
+    .magnetic-select option { background: #1a1a2e; color: #ffffff; }
+
+    .magnetic-textarea {
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--aurora-radius-md);
+      padding: var(--aurora-space-md);
+      width: 100%;
+      resize: vertical;
+      transition: all 0.3s;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+    }
+
+    .magnetic-textarea:focus {
+      outline: none;
+      border-color: var(--aurora-primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .magnetic-textarea::placeholder { color: rgba(255, 255, 255, 0.45); }
+
+    /* ── Question card ── */
+    .question-card {
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .question-text {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: var(--aurora-space-lg);
+      line-height: 1.6;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(135deg, #ffffff, #e0f0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .progress-indicator {
+      display: flex;
+      justify-content: center;
+      gap: var(--aurora-space-sm);
+      margin-bottom: var(--aurora-space-lg);
+    }
+
+    .progress-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .progress-dot.active { background: var(--aurora-secondary); box-shadow: 0 0 16px var(--aurora-secondary); }
+    .progress-dot.completed { background: var(--aurora-primary); }
+
+    /* ── Action buttons row ── */
+    .action-buttons {
+      display: flex;
+      gap: var(--aurora-space-md);
+      justify-content: center;
+      margin-top: var(--aurora-space-lg);
+      flex-wrap: wrap;
+    }
+
+    .action-card { min-width: 100px; flex: 1; max-width: 140px; }
+
+    .session-controls {
+      display: flex;
+      gap: var(--aurora-space-md);
+      justify-content: center;
+      margin-top: var(--aurora-space-lg);
+      flex-wrap: wrap;
+    }
+
+    .conversation-log {
+      max-width: 800px;
+      width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--aurora-radius-md);
+      padding: var(--aurora-space-md);
+      margin-top: var(--aurora-space-lg);
+    }
+
+    .message {
+      margin-bottom: var(--aurora-space-md);
+      padding: var(--aurora-space-md);
+      border-radius: var(--aurora-radius-md);
+      color: white;
+      line-height: 1.5;
+    }
+
+    .message.user {
+      background: rgba(59, 130, 246, 0.2);
+      margin-left: 15%;
+    }
+
+    .message.assistant {
+      background: rgba(16, 185, 129, 0.2);
+      margin-right: 15%;
+    }
+
+    .input-section { max-width: 600px; width: 100%; }
+
+    /* ── Summary screen ── */
+    .summary-screen { text-align: center; max-width: 800px; margin: 0 auto; }
+
+    .summary-content {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border-radius: var(--aurora-radius-lg);
+      padding: var(--aurora-space-xl);
+      margin: var(--aurora-space-lg) 0;
+      text-align: left;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.95rem;
+    }
+
+    /* ── Modals ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--aurora-radius-lg);
+      padding: var(--aurora-space-xl);
+      max-width: 500px;
+      width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+    }
+
+    .modal-box h2 {
+      color: white;
+      margin-bottom: var(--aurora-space-md);
+      font-size: 1.3rem;
+    }
+
+    .modal-box h3 {
+      color: var(--aurora-primary);
+      margin: var(--aurora-space-md) 0 var(--aurora-space-sm);
+      font-size: 1rem;
+    }
+
+    .modal-box p, .modal-box li {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .modal-box ul { padding-left: 20px; margin: 8px 0; }
+    .modal-box li { margin-bottom: 4px; }
+
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.8rem;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    .modal-close:hover { opacity: 1; }
+
+    .api-key-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: var(--aurora-radius-md);
+      color: white;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    .api-key-input:focus {
+      outline: none;
+      border-color: var(--aurora-primary);
+    }
+
+    .model-select-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 12px 0;
+    }
+
+    .model-select-row select { flex: 1; }
+
+    /* ── Notifications ── */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(100%); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes slideOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(100%); }
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 768px) {
+      .session-flow { padding: var(--aurora-space-md); }
+      .question-text { font-size: 1.2rem; }
+      .therapy-avatar { width: 72px; height: 72px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="therapy-container">
+    <!-- ═══ Top Bar: Status + Settings ═══ -->
+    <div class="top-bar">
+      <div class="status-badge demo" id="statusBadge">
+        <span id="statusDot">●</span> <span id="statusLabel">Demo-tila</span>
+      </div>
+      <button class="settings-btn" id="settingsBtn" title="Asetukset">⚙️</button>
+    </div>
+
+    <!-- ═══ Main Session Screen ═══ -->
+    <div id="sessionScreen" class="session-flow">
+      <div class="therapy-avatar" id="therapyAvatar">
+        <svg width="100" height="100" viewBox="0 0 120 120" id="therapistSvg">
+          <circle cx="60" cy="45" r="22" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+          <rect x="30" y="67" width="60" height="35" rx="17" fill="#60a5fa" stroke="#3b82f6" stroke-width="2"/>
+          <circle id="leftEye" cx="52" cy="42" r="3" fill="#111827"/>
+          <circle id="rightEye" cx="68" cy="42" r="3" fill="#111827"/>
+          <circle id="mouth" cx="60" cy="52" r="3" fill="#111827"/>
+          <path id="leftEyebrow" d="M47 35 Q52 33 57 35" stroke="#111827" stroke-width="2" fill="none"/>
+          <path id="rightEyebrow" d="M63 35 Q68 33 73 35" stroke="#111827" stroke-width="2" fill="none"/>
+        </svg>
+      </div>
+
+      <h1 style="color: var(--aurora-white); text-align: center; margin-bottom: 4px;">
+        TerapiaAI ⚡
+      </h1>
+      <p style="color: rgba(255, 255, 255, 0.75); text-align: center; max-width: 500px; font-size: 0.9rem;">
+        Tervetuloa henkilökohtaiseen terapiakeskusteluun. Tietosi pysyvät selaimessasi.
+      </p>
+
+      <!-- Info & Test buttons -->
+      <div style="text-align: center; margin-bottom: var(--aurora-space-md); display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+        <button id="nlpInfoBtn" class="aurora-btn aurora-btn-ghost" style="width: auto; display: inline-flex; align-items: center; gap: 6px;">
+          ℹ️ Tietosuoja & NLP
+        </button>
+        <button id="voiceTestBtn" class="aurora-btn aurora-btn-ghost" style="width: auto; display: inline-flex; align-items: center; gap: 6px;">
+          🎤 Testaa ääni
+        </button>
+      </div>
+
+      <!-- Start Session -->
+      <div class="session-controls">
+        <div class="aurora-card magnetic-card" id="startSessionCard" style="max-width: 280px; width: 100%;">
+          <button id="startSessionBtn" class="aurora-btn aurora-btn-cosmic">
+            <div class="btn-content">
+              <div class="btn-icon">🚀</div>
+              <div class="btn-text">Aloita Uusi Sessio</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Voice Controls -->
+      <div id="voiceControls" class="session-controls hidden">
+        <div class="aurora-card magnetic-card" style="max-width: 400px; width: 100%;">
+          <div class="card-content">
+            <label class="card-label" style="color: rgba(255,255,255,0.7); font-size: 0.8rem; display: block; margin-bottom: 6px;">AI Persona</label>
+            <select id="personaSelect" class="magnetic-select">
+              <option value="carl_rogers">Carl Rogers — Henkilökeskeinen</option>
+              <option value="freud">Freud — Psykoanalyytikko</option>
+              <option value="jung">Jung — Analyyttinen</option>
+              <option value="cbt">CBT — Kognitiivinen</option>
+              <option value="gestalt">Gestalt — Kokemuksellinen</option>
+              <option value="existential">Eksistentiaalinen</option>
+              <option value="virginia_satir">Virginia Satir — Perheterapeutti</option>
+              <option value="marsha_linehan">Marsha Linehan — DBT-terapeutti</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div id="questionCard" class="aurora-card magnetic-card question-card hidden">
+        <div class="card-content">
+          <div class="therapy-avatar-inline">
+            <svg width="70" height="70" viewBox="0 0 120 120">
+              <circle cx="60" cy="45" r="22" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/>
+              <rect x="30" y="67" width="60" height="35" rx="17" fill="#60a5fa" stroke="#3b82f6" stroke-width="2"/>
+              <circle id="elEye" cx="52" cy="42" r="3" fill="#111827"/>
+              <circle id="erEye" cx="68" cy="42" r="3" fill="#111827"/>
+              <circle id="emouth" cx="60" cy="52" r="3" fill="#111827"/>
+              <path id="elEyebrow" d="M47 35 Q52 33 57 35" stroke="#111827" stroke-width="2" fill="none"/>
+              <path id="erEyebrow" d="M63 35 Q68 33 73 35" stroke="#111827" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+
+          <div class="progress-indicator" id="progressIndicator"></div>
+          <div class="question-text" id="questionText">Valmistaudutaan...</div>
+
+          <div class="input-section">
+            <textarea id="userInput" class="magnetic-textarea" placeholder="Jaa ajatuksiasi vapaasti..." rows="4"></textarea>
+
+            <div class="action-buttons">
+              <div class="action-card">
+                <button id="sendBtn" class="aurora-btn aurora-btn-primary">
+                  <div class="btn-content"><span class="btn-icon">💬</span><span class="btn-text">Lähetä</span></div>
+                </button>
+              </div>
+              <div class="action-card">
+                <button id="micBtn" class="aurora-btn aurora-btn-accent">
+                  <div class="btn-content"><span class="btn-icon">🎤</span><span class="btn-text">Puhu</span></div>
+                </button>
+              </div>
+              <div class="action-card">
+                <button id="skipBtn" class="aurora-btn aurora-btn-ghost">
+                  <div class="btn-content"><span class="btn-icon">⏭️</span><span class="btn-text">Ohita</span></div>
+                </button>
+              </div>
+              <div class="action-card">
+                <button id="pauseBtn" class="aurora-btn aurora-btn-ghost">
+                  <div class="btn-content"><span class="btn-icon">⏸️</span><span class="btn-text">Tauko</span></div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversation Log -->
+      <div id="conversationLog" class="conversation-log hidden">
+        <h3 style="color: var(--aurora-white); margin-bottom: var(--aurora-space-md);">Keskustelu</h3>
+        <div id="messagesContainer"></div>
+      </div>
+    </div>
+
+    <!-- ═══ Summary Screen ═══ -->
+    <div id="summaryScreen" class="session-flow hidden">
+      <div class="summary-screen" style="padding: var(--aurora-space-xl);">
+        <div class="therapy-avatar" style="margin: 0 auto;">✨</div>
+        <h1 style="color: var(--aurora-white); margin-top: var(--aurora-space-lg);">Sessio Yhteenveto</h1>
+        <div class="summary-content" id="summaryContent">Luodaan henkilökohtaista yhteenvetoa...</div>
+        <div class="session-controls">
+          <button id="downloadSummaryBtn" class="aurora-btn aurora-btn-primary" style="max-width: 220px;">
+            <div class="btn-content"><span class="btn-icon">📥</span><span class="btn-text">Lataa Yhteenveto</span></div>
+          </button>
+          <button id="newSessionBtn" class="aurora-btn aurora-btn-cosmic" style="max-width: 220px;">
+            <div class="btn-content"><span class="btn-icon">🚀</span><span class="btn-text">Uusi Sessio</span></div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Settings Modal ═══ -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-box" style="position: relative;">
+      <button class="modal-close" id="closeSettingsBtn">&times;</button>
+      <h2>⚙️ Asetukset</h2>
+
+      <h3>OpenRouter API -avain</h3>
+      <p>Liitä oma <a href="https://openrouter.ai/keys" target="_blank" style="color: #60a5fa;">OpenRouter API-avain</a> käyttääksesi AI-terapiaa. Avain tallennetaan <strong>vain omaan selaimeesi</strong> (localStorage). Ilman avainta käytetään sisäänrakennettuja demovastauksia.</p>
+      <input type="password" id="apiKeyInput" class="api-key-input" placeholder="sk-or-v1-..." />
+      <div style="display: flex; gap: 8px; margin-top: 12px;">
+        <button id="saveApiKeyBtn" class="aurora-btn aurora-btn-primary" style="flex:1;">Tallenna avain</button>
+        <button id="clearApiKeyBtn" class="aurora-btn aurora-btn-ghost" style="flex:1;">Tyhjennä</button>
+      </div>
+      <p id="apiKeyStatus" style="margin-top: 8px; font-size: 0.8rem; min-height: 20px;"></p>
+
+      <h3>AI-malli (valinnainen)</h3>
+      <div class="model-select-row">
+        <select id="modelSelect" class="magnetic-select">
+          <option value="openai/gpt-4o-mini">GPT-4o Mini (suositeltu)</option>
+          <option value="openai/gpt-4o">GPT-4o (parempi)</option>
+          <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash</option>
+          <option value="anthropic/claude-3.5-haiku">Claude 3.5 Haiku</option>
+          <option value="meta-llama/llama-4-maverick:free">Llama 4 Maverick (ilmainen)</option>
+          <option value="google/gemini-2.0-flash-exp:free">Gemini Flash (ilmainen)</option>
+        </select>
+      </div>
+
+      <div style="margin-top: 16px; padding: 12px; background: rgba(234, 179, 8, 0.1); border-radius: 8px; border-left: 3px solid #eab308;">
+        <p style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">
+          ⚠️ API-avaimesi näkyy selaimen kehittäjätyökaluissa (Network-välilehti). Tämä sovellus on tarkoitettu henkilökohtaiseen käyttöön.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ NLP Info Modal ═══ -->
+  <div class="modal-overlay" id="nlpInfoModal">
+    <div class="modal-box" style="position: relative;">
+      <button class="modal-close" id="closeNlpModal">&times;</button>
+      <h2>ℹ️ Mikä on NLP ja tietojen käsittely</h2>
+
+      <h3>Mikä on NLP?</h3>
+      <p>NLP (Natural Language Processing) on tekoälyn osa-alue, joka mahdollistaa tietokoneiden ymmärtää ihmisten kieltä. TerapiaAI:ssa:</p>
+      <ul>
+        <li><strong>Ymmärretään</strong> vastauksesi ja tunnistetaan tärkeimmät teemat</li>
+        <li><strong>Generoidaan</strong> henkilökohtaisia terapeuttisia vastauksia</li>
+        <li><strong>Luodaan</strong> sessioiden yhteenvetoja</li>
+      </ul>
+
+      <h3>Miten tietojasi käsitellään?</h3>
+      <ul>
+        <li>🔒 Kaikki keskustelut pysyvät <strong>omassa selaimessasi</strong></li>
+        <li>📋 Keskusteluhistoria tallennetaan <strong>localStorage</strong>-muistiin</li>
+        <li>🔑 API-avain on vain sinun hallussasi</li>
+        <li>🤖 AI-kutsut tehdään salatusti HTTPS:n kautta OpenRouteriin</li>
+        <li>🗑️ Voit tyhjentää avaimen milloin tahansa asetuksista</li>
+      </ul>
+
+      <p style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid #3b82f6;">
+        💡 TerapiaAI on apuväline — ei korvaa ammattimaista terapiaa. Jos tarvitset kriisitukea, ota yhteyttä ammattilaisiin.
+      </p>
+    </div>
+  </div>
+
+  <!-- ═══ Main JavaScript ═══ -->
+  <script>
+  (function() {
+    'use strict';
+
+    // ═══════════════════════════════════════════
+    // CONSTANTS
+    // ═══════════════════════════════════════════
+    const STORAGE_KEY_API = 'terapia_ai_api_key';
+    const STORAGE_KEY_MODEL = 'terapia_ai_model';
+    const STORAGE_KEY_PERSONA = 'terapia_ai_persona';
+    const STORAGE_KEY_HISTORY = 'terapia_ai_history';
+    const TOTAL_QUESTIONS = 10;
+
+    const demoResponses = [
+      "Kiitos jakamastasi ajatuksesta. Kuulen, että tämä on sinulle tärkeää. Mitä muuta haluaisit kertoa?",
+      "Se kuulostaa vaikealta tilanteelta. Onko jotain, mikä auttaisi sinua tässä hetkessä?",
+      "Ymmärrän tunteen. Onko jotain, mikä tuo sinulle lohtua vaikeina hetkinä?",
+      "Kiitos, että jaat tämän kanssani. Miltä kehossasi tuntuu, kun puhut tästä?",
+      "Kuulostaa siltä, että tarvitset tukea. Miten voisin parhaiten auttaa sinua juuri nyt?",
+      "Tämä kuulostaa merkitykselliseltä. Missä kohtaa kehoasi tunnet tämän eniten?",
+      "Kiitos luottamuksesta. Miten haluaisit, että jatkamme tästä eteenpäin?",
+      "Ymmärrän, että tämä on sinulle merkityksellistä. Miltä tuntuu nyt, kun olet kertonut tämän?",
+      "Kiitos avoimuudesta. Onko jotain, mikä helpottaisi oloasi tällä hetkellä?",
+      "Kuulen, että tarvitset tukea. Mitä toivoisit minun ymmärtävän tilanteestasi paremmin?",
+      "Se on rohkeaa, että puhut tästä. Miten olet selvinnyt vastaavista tilanteista aiemmin?",
+      "Kuulostaa siltä, että kannat paljon. Mitä tarvitsisit juuri nyt?",
+      "Olet tärkeä ja tunteesi ovat tärkeitä. Kerro lisää siitä, mikä painaa mieltäsi.",
+      "Kuulen sinua. Onko jotain, mitä et ole vielä kertonut, mutta haluaisit jakaa?",
+      "Tämä on turvallinen tila. Mitä sydämelläsi on juuri nyt?"
+    ];
+
+    const questions = [
+      'Miten voitte tänään?',
+      'Mikä on tärkeintä elämässänne juuri nyt?',
+      'Miltä tuntuu, kun ajattelette tulevaisuutta?',
+      'Mitä haluaisitte muuttaa elämässänne?',
+      'Mistä saatte iloa ja energiaa?',
+      'Mikä on vaikeinta teille tällä hetkellä?',
+      'Miten koette itsenne?',
+      'Mitä unelmoitte tekevänne, jos voisitte?',
+      'Mistä olette kiitollisia?',
+      'Minkälaista tukea tarvitsette?'
+    ];
+
+    const personaPrompts = {
+      carl_rogers: 'Olet Carl Rogers -henkilökeskeinen terapeutti. Käytä aktiivista kuuntelua, peilaile tunteita ja anna ehdottoman positiivista katsetta. Anna lyhyt, ymmärtävä, lämmin vastaus suomeksi (1-3 lausetta).',
+      freud: 'Olet Freud-tyylinen psykoanalyytikko. Tutki alitajuntaisia motiiveja ja lapsuuden kokemuksia. Anna syvällinen, analyyttinen vastaus suomeksi (1-3 lausetta).',
+      jung: 'Olet Jung-tyylinen analyyttinen terapeutti. Tutki arkkityyppejä, symboleita ja henkilökohtaista kehitystä. Anna viisas, symbolinen vastaus suomeksi (1-3 lausetta).',
+      cbt: 'Olet CBT-kognitiivinen terapeutti. Tutki ajatusmalleja ja käyttäytymiskehiä. Anna käytännöllinen, ratkaisukeskeinen vastaus suomeksi (1-3 lausetta).',
+      gestalt: 'Olet Gestalt-kokemuksellinen terapeutti. Keskity nykyhetkeen ja kehon tuntemuksiin. Anna elävä, kokemuksellinen vastaus suomeksi (1-3 lausetta).',
+      existential: 'Olet eksistentiaalinen terapeutti. Tutki elämän merkitystä, vapautta ja vastuuta. Anna syvällinen, filosofinen vastaus suomeksi (1-3 lausetta).',
+      virginia_satir: 'Olet Virginia Satir -perheterapeutti. Keskity perhesuhteisiin, kommunikaatioon ja perheen voimaan. Anna lämmittävä, perhekeskeinen vastaus suomeksi (1-3 lausetta).',
+      marsha_linehan: 'Olet Marsha Linehan -DBT-terapeutti. Käytä dialektista käyttäytymisterapiaa, mindfulnessia ja emotionaalista säätelyä. Anna myötätuntoinen, tasapainottava vastaus suomeksi (1-3 lausetta).'
+    };
+
+    const voiceConfigs = {
+      carl_rogers:    { name: 'Carl Rogers',      gender: 'male',   rate: 0.8,  pitch: 0.9,  volume: 0.9,  voiceIndex: 0 },
+      freud:           { name: 'Freud',             gender: 'male',   rate: 0.7,  pitch: 0.85, volume: 0.8,  voiceIndex: 1 },
+      jung:            { name: 'Jung',              gender: 'male',   rate: 0.75, pitch: 0.9,  volume: 0.85, voiceIndex: 2 },
+      cbt:             { name: 'CBT',               gender: 'male',   rate: 0.9,  pitch: 1.0,  volume: 0.9,  voiceIndex: 3 },
+      gestalt:         { name: 'Gestalt',           gender: 'male',   rate: 0.85, pitch: 0.95, volume: 0.88, voiceIndex: 4 },
+      existential:     { name: 'Existential',       gender: 'male',   rate: 0.7,  pitch: 0.9,  volume: 0.8,  voiceIndex: 5 },
+      virginia_satir:  { name: 'Virginia Satir',    gender: 'female', rate: 0.8,  pitch: 1.1,  volume: 0.9,  voiceIndex: 6 },
+      marsha_linehan:  { name: 'Marsha Linehan',    gender: 'female', rate: 0.85, pitch: 1.15, volume: 0.88, voiceIndex: 7 }
+    };
+
+    // ═══════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════
+    const state = {
+      sessionStarted: false,
+      sessionPaused: false,
+      currentQuestion: 0,
+      currentPersona: localStorage.getItem(STORAGE_KEY_PERSONA) || 'carl_rogers',
+      micOn: false,
+      voiceOn: true,
+      conversationHistory: [],
+      currentSummary: '',
+      processing: false
+    };
+
+    // ═══════════════════════════════════════════
+    // API KEY & MODEL
+    // ═══════════════════════════════════════════
+    function getApiKey() {
+      return localStorage.getItem(STORAGE_KEY_API) || '';
+    }
+
+    function setApiKey(key) {
+      localStorage.setItem(STORAGE_KEY_API, key.trim());
+      updateStatusBadge();
+    }
+
+    function clearApiKey() {
+      localStorage.removeItem(STORAGE_KEY_API);
+      updateStatusBadge();
+    }
+
+    function getModel() {
+      return localStorage.getItem(STORAGE_KEY_MODEL) || 'openai/gpt-4o-mini';
+    }
+
+    function setModel(model) {
+      localStorage.setItem(STORAGE_KEY_MODEL, model);
+    }
+
+    function hasApiKey() {
+      const key = getApiKey();
+      return key.length > 10;
+    }
+
+    // ═══════════════════════════════════════════
+    // OPENROUTER API
+    // ═══════════════════════════════════════════
+    async function callOpenRouter(messages) {
+      const apiKey = getApiKey();
+      if (!hasApiKey()) throw new Error('No API key');
+
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': window.location.href,
+          'X-OpenRouter-Title': 'TerapiaAI',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: getModel(),
+          messages: messages,
+          max_tokens: 500,
+          temperature: 0.8
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error?.message || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const content = data?.choices?.[0]?.message?.content;
+      if (!content) throw new Error('Tyhjä vastaus API:lta');
+      return content;
+    }
+
+    function getDemoResponse() {
+      const idx = Math.floor(Math.random() * demoResponses.length);
+      return demoResponses[idx];
+    }
+
+    // ═══════════════════════════════════════════
+    // STATUS BADGE
+    // ═══════════════════════════════════════════
+    function updateStatusBadge() {
+      const badge = document.getElementById('statusBadge');
+      const label = document.getElementById('statusLabel');
+      const dot = document.getElementById('statusDot');
+
+      if (hasApiKey()) {
+        badge.className = 'status-badge ai';
+        label.textContent = 'AI-tila';
+        dot.textContent = '●';
+      } else {
+        badge.className = 'status-badge demo';
+        label.textContent = 'Demo-tila';
+        dot.textContent = '●';
+      }
+    }
+
+    // ═══════════════════════════════════════════
+    // DOM ELEMENTS
+    // ═══════════════════════════════════════════
+    const $ = (id) => document.getElementById(id);
+
+    const elements = {
+      sessionScreen: $('sessionScreen'),
+      summaryScreen: $('summaryScreen'),
+      startSessionBtn: $('startSessionBtn'),
+      startSessionCard: $('startSessionCard'),
+      voiceControls: $('voiceControls'),
+      micBtn: $('micBtn'),
+      personaSelect: $('personaSelect'),
+      questionCard: $('questionCard'),
+      questionText: $('questionText'),
+      progressIndicator: $('progressIndicator'),
+      userInput: $('userInput'),
+      sendBtn: $('sendBtn'),
+      skipBtn: $('skipBtn'),
+      pauseBtn: $('pauseBtn'),
+      conversationLog: $('conversationLog'),
+      messagesContainer: $('messagesContainer'),
+      summaryContent: $('summaryContent'),
+      downloadSummaryBtn: $('downloadSummaryBtn'),
+      newSessionBtn: $('newSessionBtn'),
+      nlpInfoBtn: $('nlpInfoBtn'),
+      nlpInfoModal: $('nlpInfoModal'),
+      closeNlpModal: $('closeNlpModal'),
+      voiceTestBtn: $('voiceTestBtn'),
+      settingsBtn: $('settingsBtn'),
+      settingsModal: $('settingsModal'),
+      closeSettingsBtn: $('closeSettingsBtn'),
+      apiKeyInput: $('apiKeyInput'),
+      saveApiKeyBtn: $('saveApiKeyBtn'),
+      clearApiKeyBtn: $('clearApiKeyBtn'),
+      apiKeyStatus: $('apiKeyStatus'),
+      modelSelect: $('modelSelect'),
+      statusBadge: $('statusBadge')
+    };
+
+    // ═══════════════════════════════════════════
+    // SPEECH RECOGNITION
+    // ═══════════════════════════════════════════
+    let recognition = null;
+
+    function initSpeechRecognition() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) return null;
+
+      recognition = new SR();
+      recognition.lang = 'fi-FI';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        state.micOn = true;
+        elements.micBtn.querySelector('.btn-text').textContent = 'Kuuntelee...';
+        setExpression('listening');
+      };
+
+      recognition.onend = () => {
+        state.micOn = false;
+        elements.micBtn.querySelector('.btn-text').textContent = 'Puhu';
+        setExpression('neutral');
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        elements.userInput.value = transcript;
+        setExpression('thinking');
+      };
+
+      recognition.onerror = (event) => {
+        console.error('STT error:', event.error);
+        state.micOn = false;
+        elements.micBtn.querySelector('.btn-text').textContent = 'Puhu';
+      };
+
+      return recognition;
+    }
+
+    // ═══════════════════════════════════════════
+    // THERAPIST EXPRESSIONS
+    // ═══════════════════════════════════════════
+    function setExpression(emotion) {
+      const le = document.getElementById('elEyebrow');
+      const re = document.getElementById('erEyebrow');
+      const m = document.getElementById('emouth');
+      if (!le || !re || !m) return;
+
+      const configs = {
+        listening:  { le: 'M47 33 Q52 31 57 33', re: 'M63 33 Q68 31 73 33', mr: 2 },
+        thinking:   { le: 'M47 37 Q52 35 57 37', re: 'M63 37 Q68 35 73 37', mr: 2 },
+        empathetic: { le: 'M47 33 Q52 32 57 33', re: 'M63 33 Q68 32 73 33', mr: 4 },
+        talking:    { le: 'M47 33 Q52 32 57 33', re: 'M63 33 Q68 32 73 33', mr: 5 },
+        neutral:    { le: 'M47 35 Q52 33 57 35', re: 'M63 35 Q68 33 73 35', mr: 3 }
+      };
+
+      const c = configs[emotion] || configs.neutral;
+      le.setAttribute('d', c.le);
+      re.setAttribute('d', c.re);
+      m.setAttribute('r', String(c.mr));
+    }
+
+    // ═══════════════════════════════════════════
+    // TTS (TEXT-TO-SPEECH)
+    // ═══════════════════════════════════════════
+    let availableVoices = [];
+
+    function initVoices() {
+      const loadVoices = () => {
+        availableVoices = speechSynthesis.getVoices();
+        console.log('Voices loaded:', availableVoices.length);
+      };
+
+      loadVoices();
+      speechSynthesis.addEventListener('voiceschanged', loadVoices);
+    }
+
+    function getVoiceForPersona(persona) {
+      const config = voiceConfigs[persona];
+      if (!config) return null;
+
+      const finnishVoices = availableVoices.filter(v => v.lang.startsWith('fi'));
+      const fiMale = finnishVoices.filter(v =>
+        v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('marko') || v.name.toLowerCase().includes('mies'));
+      const fiFemale = finnishVoices.filter(v =>
+        v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('heidi') || v.name.toLowerCase().includes('nainen'));
+
+      let preferred = null;
+      if (config.gender === 'female' && fiFemale.length > 0) preferred = fiFemale[config.voiceIndex % fiFemale.length];
+      else if (config.gender === 'male' && fiMale.length > 0) preferred = fiMale[config.voiceIndex % fiMale.length];
+      else if (finnishVoices.length > 0) preferred = finnishVoices[config.voiceIndex % finnishVoices.length];
+      else {
+        const en = availableVoices.filter(v => v.lang.startsWith('en'));
+        if (en.length > 0) preferred = en[config.voiceIndex % en.length];
+        else if (availableVoices.length > 0) preferred = availableVoices[config.voiceIndex % availableVoices.length];
+      }
+
+      return preferred;
+    }
+
+    function speakText(text) {
+      if (!state.voiceOn) return;
+
+      if (state.micOn && recognition) recognition.stop();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'fi-FI';
+
+      const config = voiceConfigs[state.currentPersona];
+      if (config) {
+        utterance.rate = config.rate;
+        utterance.pitch = config.pitch;
+        utterance.volume = config.volume;
+        const voice = getVoiceForPersona(state.currentPersona);
+        if (voice) utterance.voice = voice;
+      }
+
+      utterance.onstart = () => setExpression('talking');
+      utterance.onend = () => {
+        setExpression('empathetic');
+        if (state.micOn && recognition) setTimeout(() => recognition.start(), 500);
+      };
+      utterance.onerror = () => setExpression('neutral');
+
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utterance);
+    }
+
+    function testCurrentVoice() {
+      if (availableVoices.length === 0) {
+        showNotification('Äänet eivät ole vielä ladattu. Odota hetki.', 'error');
+        return;
+      }
+      const config = voiceConfigs[state.currentPersona];
+      const testPhrase = `Hei, olen ${config?.name || 'terapeutti'}. Tämä on testi äänestäni.`;
+      speakText(testPhrase);
+      showNotification(`Testataan ${config?.name || ''} -ääntä`, 'info');
+    }
+
+    // ═══════════════════════════════════════════
+    // PROGRESS INDICATOR
+    // ═══════════════════════════════════════════
+    function initProgress() {
+      elements.progressIndicator.innerHTML = '';
+      for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'progress-dot';
+        if (i < state.currentQuestion) dot.classList.add('completed');
+        else if (i === state.currentQuestion) dot.classList.add('active');
+        elements.progressIndicator.appendChild(dot);
+      }
+    }
+
+    function updateProgress() {
+      const dots = elements.progressIndicator.querySelectorAll('.progress-dot');
+      dots.forEach((dot, i) => {
+        dot.classList.remove('active', 'completed');
+        if (i < state.currentQuestion) dot.classList.add('completed');
+        else if (i === state.currentQuestion) dot.classList.add('active');
+      });
+    }
+
+    // ═══════════════════════════════════════════
+    // CONVERSATION
+    // ═══════════════════════════════════════════
+    function addMessage(content, role) {
+      state.conversationHistory.push({ role, content, timestamp: Date.now() });
+      const div = document.createElement('div');
+      div.className = `message ${role}`;
+      div.textContent = content;
+      elements.messagesContainer.appendChild(div);
+      elements.conversationLog.scrollTop = elements.conversationLog.scrollHeight;
+    }
+
+    // ═══════════════════════════════════════════
+    // SHOW QUESTION
+    // ═══════════════════════════════════════════
+    function showQuestion() {
+      if (state.currentQuestion >= TOTAL_QUESTIONS) {
+        generateSummary();
+        return;
+      }
+
+      elements.questionText.textContent = questions[state.currentQuestion];
+      elements.userInput.value = '';
+      updateProgress();
+      speakText(questions[state.currentQuestion]);
+
+      setTimeout(() => {
+        elements.userInput.focus();
+        if (state.micOn && recognition && !state.sessionPaused) {
+          try { recognition.start(); } catch(e) {}
+        }
+      }, 2000);
+    }
+
+    // ═══════════════════════════════════════════
+    // SEND MESSAGE
+    // ═══════════════════════════════════════════
+    async function sendMessage() {
+      if (state.processing) return;
+      const content = elements.userInput.value.trim();
+      if (!content) return;
+
+      state.processing = true;
+      addMessage(content, 'user');
+      elements.userInput.value = '';
+
+      // Build messages for AI
+      const systemPrompt = personaPrompts[state.currentPersona];
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Kysymys: ${questions[state.currentQuestion]}. Vastaukseni: ${content}` }
+      ];
+
+      let aiResponse = '';
+      try {
+        if (hasApiKey()) {
+          aiResponse = await callOpenRouter(messages);
+        } else {
+          aiResponse = getDemoResponse();
+        }
+      } catch (err) {
+        console.error('API error:', err);
+        showNotification('AI-virhe: ' + err.message + '. Käytetään demovastausta.', 'error');
+        aiResponse = getDemoResponse();
+      }
+
+      addMessage(aiResponse, 'assistant');
+      speakText(aiResponse);
+
+      state.currentQuestion++;
+      state.processing = false;
+
+      if (state.currentQuestion >= TOTAL_QUESTIONS) {
+        generateSummary();
+      } else {
+        setTimeout(() => showQuestion(), 1500);
+      }
+    }
+
+    // ═══════════════════════════════════════════
+    // SKIP QUESTION
+    // ═══════════════════════════════════════════
+    function skipQuestion() {
+      addMessage('(Kysymys ohitettu)', 'user');
+      state.currentQuestion++;
+      if (state.currentQuestion >= TOTAL_QUESTIONS) {
+        generateSummary();
+      } else {
+        setTimeout(() => showQuestion(), 800);
+      }
+    }
+
+    // ═══════════════════════════════════════════
+    // SESSION MANAGEMENT
+    // ═══════════════════════════════════════════
+    async function startSession() {
+      state.sessionStarted = true;
+      state.sessionPaused = false;
+      state.currentQuestion = 0;
+      state.conversationHistory = [];
+      state.currentSummary = '';
+
+      elements.startSessionCard.classList.add('hidden');
+      elements.voiceControls.classList.remove('hidden');
+      elements.questionCard.classList.remove('hidden');
+      elements.conversationLog.classList.remove('hidden');
+      elements.messagesContainer.innerHTML = '';
+
+      initSpeechRecognition();
+      initProgress();
+      showQuestion();
+
+      updateStatusBadge();
+      showNotification('Sessio aloitettu!', 'success');
+    }
+
+    function pauseSession() {
+      if (!state.sessionStarted) return;
+      state.sessionPaused = !state.sessionPaused;
+
+      if (state.sessionPaused) {
+        elements.pauseBtn.querySelector('.btn-text').textContent = 'Jatka';
+        elements.pauseBtn.querySelector('.btn-icon').textContent = '▶️';
+        elements.userInput.disabled = true;
+        elements.sendBtn.disabled = true;
+        speechSynthesis.cancel();
+        if (recognition) recognition.stop();
+        showNotification('Sessio tauolla', 'info');
+      } else {
+        elements.pauseBtn.querySelector('.btn-text').textContent = 'Tauko';
+        elements.pauseBtn.querySelector('.btn-icon').textContent = '⏸️';
+        elements.userInput.disabled = false;
+        elements.sendBtn.disabled = false;
+        showNotification('Sessio jatkuu', 'success');
+      }
+    }
+
+    // ═══════════════════════════════════════════
+    // SUMMARY
+    // ═══════════════════════════════════════════
+    async function generateSummary() {
+      elements.sessionScreen.classList.add('hidden');
+      elements.summaryScreen.classList.remove('hidden');
+      elements.summaryContent.textContent = 'Luodaan henkilökohtaista yhteenvetoa...';
+
+      // Build transcript
+      const transcript = state.conversationHistory
+        .map(m => `${m.role === 'user' ? 'Käyttäjä' : 'Terapeutti'}: ${m.content}`)
+        .join('\n');
+
+      let summary = '';
+
+      if (hasApiKey()) {
+        try {
+          const messages = [
+            { role: 'system', content: 'Olet empaattinen terapeuttiassistentti. Luo käyttäjälle lyhyt, myötätuntoinen yhteenveto terapiakeskustelusta. Kerro keskeiset teemat, tunnelma ja pehmeät suositukset jatkoa varten. Kirjoita suomeksi, selkeällä kielellä. Käytä max 200 sanaa.' },
+            { role: 'user', content: `Tässä on terapiakeskustelun transkriptio. Tee siitä asiakkaalle yhteenveto:\n\n${transcript}` }
+          ];
+          summary = await callOpenRouter(messages);
+        } catch (err) {
+          console.error('Summary API error:', err);
+        }
+      }
+
+      if (!summary) {
+        // Local summary fallback
+        const themes = ['henkilökohtainen hyvinvointi', 'tunteiden käsittely', 'elämänmuutokset', 'tuen tarve', 'itsereflektio'];
+        const randomThemes = themes.sort(() => Math.random() - 0.5).slice(0, 3);
+
+        summary = `Terapiasessio — Yhteenveto\n` +
+          `Päivämäärä: ${new Date().toLocaleDateString('fi-FI')}\n\n` +
+          `Tässä sessiossa keskustelimme useista tärkeistä aiheista. Keskustelussa nousi esiin teemoja kuten ${randomThemes[0]}, ${randomThemes[1]} ja ${randomThemes[2]}.\n\n` +
+          `Keskeiset huomiot:\n` +
+          `• Jaoit ajatuksiasi avoimesti ja rehellisesti\n` +
+          `• Keskustelu syveni session edetessä\n` +
+          `• Tunteiden tunnistaminen ja sanoittaminen onnistui hyvin\n\n` +
+          `Suositukset jatkoa varten:\n` +
+          `• Jatka itsetutkiskelua ja tunteiden tunnistamista\n` +
+          `• Muista olla lempeä itseäsi kohtaan\n` +
+          `• Etsi tukea läheisiltä ihmisiltä tarvittaessa\n\n` +
+          `Kiitos, että jaoit ajatuksiasi tässä sessiossa. Olet rohkea.`;
+      }
+
+      state.currentSummary = summary;
+      elements.summaryContent.textContent = summary;
+      showNotification('Sessio valmis — yhteenveto luotu!', 'success');
+    }
+
+    function downloadSummary() {
+      const blob = new Blob([state.currentSummary], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `terapia-yhteenveto-${new Date().toISOString().split('T')[0]}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ═══════════════════════════════════════════
+    // NOTIFICATIONS
+    // ═══════════════════════════════════════════
+    function showNotification(message, type) {
+      const colors = { success: '#10b981', error: '#ef4444', info: '#3b82f6', warning: '#eab308' };
+      const n = document.createElement('div');
+      n.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 300;
+        background: ${colors[type] || colors.info}; color: white;
+        padding: 12px 18px; border-radius: 10px; font-size: 0.85rem;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.4); max-width: 320px;
+        animation: slideIn 0.3s ease-out; font-family: 'Inter', sans-serif;
+      `;
+      n.textContent = message;
+      document.body.appendChild(n);
+      setTimeout(() => {
+        n.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => n.remove(), 300);
+      }, 3500);
+    }
+
+    // ═══════════════════════════════════════════
+    // MODALS
+    // ═══════════════════════════════════════════
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    function openSettings() {
+      elements.apiKeyInput.value = getApiKey();
+      elements.modelSelect.value = getModel();
+      elements.apiKeyStatus.textContent = '';
+      openModal('settingsModal');
+    }
+
+    // ═══════════════════════════════════════════
+    // EVENT LISTENERS
+    // ═══════════════════════════════════════════
+    elements.startSessionBtn.addEventListener('click', startSession);
+    elements.sendBtn.addEventListener('click', sendMessage);
+    elements.skipBtn.addEventListener('click', skipQuestion);
+    elements.pauseBtn.addEventListener('click', pauseSession);
+    elements.downloadSummaryBtn.addEventListener('click', downloadSummary);
+    elements.newSessionBtn.addEventListener('click', () => {
+      elements.summaryScreen.classList.add('hidden');
+      elements.sessionScreen.classList.remove('hidden');
+      elements.startSessionCard.classList.remove('hidden');
+      elements.voiceControls.classList.add('hidden');
+      elements.questionCard.classList.add('hidden');
+      elements.conversationLog.classList.add('hidden');
+      elements.messagesContainer.innerHTML = '';
+      startSession();
+    });
+
+    // Settings
+    elements.settingsBtn.addEventListener('click', openSettings);
+    elements.closeSettingsBtn.addEventListener('click', () => closeModal('settingsModal'));
+    elements.settingsModal.addEventListener('click', (e) => {
+      if (e.target === elements.settingsModal) closeModal('settingsModal');
+    });
+
+    elements.saveApiKeyBtn.addEventListener('click', () => {
+      const key = elements.apiKeyInput.value.trim();
+      if (key.length < 10) {
+        elements.apiKeyStatus.textContent = '❌ Avain on liian lyhyt';
+        elements.apiKeyStatus.style.color = '#ef4444';
+        return;
+      }
+      setApiKey(key);
+      setModel(elements.modelSelect.value);
+      elements.apiKeyStatus.textContent = '✅ Avain tallennettu!';
+      elements.apiKeyStatus.style.color = '#10b981';
+      updateStatusBadge();
+    });
+
+    elements.clearApiKeyBtn.addEventListener('click', () => {
+      clearApiKey();
+      elements.apiKeyInput.value = '';
+      elements.apiKeyStatus.textContent = '🗑️ Avain poistettu — käytössä demo-tila';
+      elements.apiKeyStatus.style.color = '#eab308';
+      updateStatusBadge();
+    });
+
+    // NLP Info modal
+    elements.nlpInfoBtn.addEventListener('click', () => openModal('nlpInfoModal'));
+    elements.closeNlpModal.addEventListener('click', () => closeModal('nlpInfoModal'));
+    elements.nlpInfoModal.addEventListener('click', (e) => {
+      if (e.target === elements.nlpInfoModal) closeModal('nlpInfoModal');
+    });
+
+    // Voice test
+    elements.voiceTestBtn.addEventListener('click', testCurrentVoice);
+
+    // Mic toggle
+    elements.micBtn.addEventListener('click', () => {
+      if (!recognition) {
+        initSpeechRecognition();
+        if (!recognition) {
+          showNotification('Puheentunnistus ei ole tuettu selaimessasi.', 'error');
+          return;
+        }
+      }
+
+      if (state.micOn) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    });
+
+    // Persona change
+    elements.personaSelect.addEventListener('change', (e) => {
+      state.currentPersona = e.target.value;
+      localStorage.setItem(STORAGE_KEY_PERSONA, state.currentPersona);
+      const name = e.target.options[e.target.selectedIndex].text;
+      showNotification(`Persona: ${name}`, 'info');
+      if (state.voiceOn && availableVoices.length > 0) {
+        setTimeout(() => {
+          speakText('Tervetuloa terapiakeskusteluun.');
+        }, 500);
+      }
+    });
+
+    // Enter to send
+    elements.userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // ═══════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════
+    function init() {
+      updateStatusBadge();
+      initProgress();
+      initVoices();
+
+      // Restore saved persona
+      elements.personaSelect.value = state.currentPersona;
+
+      // Load saved model
+      elements.modelSelect.value = getModel();
+
+      // Init Aurora UI if loaded
+      if (typeof AuroraUILibrary !== 'undefined') {
+        try {
+          new AuroraUILibrary({ theme: 'cosmic', accessibility: true, mobile: true });
+        } catch(e) {}
+      }
+    }
+
+    init();
+  })();
+  </script>
+</body>
+</html>
