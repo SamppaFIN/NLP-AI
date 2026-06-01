@@ -526,19 +526,29 @@
 
       <!-- Voice Controls -->
       <div id="voiceControls" class="session-controls hidden">
-        <div class="aurora-card magnetic-card" style="max-width: 400px; width: 100%;">
-          <div class="card-content">
-            <label class="card-label" style="color: rgba(255,255,255,0.7); font-size: 0.8rem; display: block; margin-bottom: 6px;">AI Persona</label>
-            <select id="personaSelect" class="magnetic-select">
-              <option value="carl_rogers">Carl Rogers — Henkilökeskeinen</option>
-              <option value="freud">Freud — Psykoanalyytikko</option>
-              <option value="jung">Jung — Analyyttinen</option>
-              <option value="cbt">CBT — Kognitiivinen</option>
-              <option value="gestalt">Gestalt — Kokemuksellinen</option>
-              <option value="existential">Eksistentiaalinen</option>
-              <option value="virginia_satir">Virginia Satir — Perheterapeutti</option>
-              <option value="marsha_linehan">Marsha Linehan — DBT-terapeutti</option>
-            </select>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 700px;">
+          <div class="aurora-card magnetic-card" style="flex: 1; min-width: 220px;">
+            <div class="card-content">
+              <label class="card-label" style="color: rgba(255,255,255,0.7); font-size: 0.8rem; display: block; margin-bottom: 6px;">🧠 AI Persona</label>
+              <select id="personaSelect" class="magnetic-select">
+                <option value="carl_rogers">Carl Rogers — Henkilökeskeinen</option>
+                <option value="freud">Freud — Psykoanalyytikko</option>
+                <option value="jung">Jung — Analyyttinen</option>
+                <option value="cbt">CBT — Kognitiivinen</option>
+                <option value="gestalt">Gestalt — Kokemuksellinen</option>
+                <option value="existential">Eksistentiaalinen</option>
+                <option value="virginia_satir">Virginia Satir — Perheterapeutti</option>
+                <option value="marsha_linehan">Marsha Linehan — DBT-terapeutti</option>
+              </select>
+            </div>
+          </div>
+          <div class="aurora-card magnetic-card" style="flex: 1; min-width: 220px;">
+            <div class="card-content">
+              <label class="card-label" style="color: rgba(255,255,255,0.7); font-size: 0.8rem; display: block; margin-bottom: 6px;">🎤 Ääni</label>
+              <select id="voiceSelect" class="magnetic-select">
+                <option value="auto">🤖 Automaattinen (persoonan mukaan)</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -690,6 +700,7 @@
     const STORAGE_KEY_API = 'terapia_ai_api_key';
     const STORAGE_KEY_MODEL = 'terapia_ai_model';
     const STORAGE_KEY_PERSONA = 'terapia_ai_persona';
+    const STORAGE_KEY_VOICE = 'terapia_ai_voice';
     const STORAGE_KEY_HISTORY = 'terapia_ai_history';
     const TOTAL_QUESTIONS = 10;
 
@@ -862,6 +873,7 @@
       voiceControls: $('voiceControls'),
       micBtn: $('micBtn'),
       personaSelect: $('personaSelect'),
+      voiceSelect: $('voiceSelect'),
       questionCard: $('questionCard'),
       questionText: $('questionText'),
       progressIndicator: $('progressIndicator'),
@@ -958,11 +970,85 @@
     // ═══════════════════════════════════════════
     let availableVoices = [];
 
+    function getManualVoice() {
+      const key = localStorage.getItem(STORAGE_KEY_VOICE);
+      if (!key || key === 'auto') return null;
+      return availableVoices.find(v => v.name === key) || null;
+    }
+
+    function populateVoiceSelect() {
+      const sel = elements.voiceSelect;
+      if (!sel) return;
+      // Save current selection
+      const currentVal = localStorage.getItem(STORAGE_KEY_VOICE) || 'auto';
+      sel.innerHTML = '<option value="auto">🤖 Automaattinen (persoonan mukaan)</option>';
+
+      // Group voices by language
+      const fiVoices = availableVoices.filter(v => v.lang.startsWith('fi'));
+      const otherVoices = availableVoices.filter(v => !v.lang.startsWith('fi'));
+
+      if (fiVoices.length > 0) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = '🇫🇮 Suomenkieliset äänet';
+        fiVoices.forEach(v => {
+          const o = document.createElement('option');
+          o.value = v.name;
+          o.textContent = `${v.name} (${v.lang})`;
+          optgroup.appendChild(o);
+        });
+        sel.appendChild(optgroup);
+      }
+
+      if (otherVoices.length > 0) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = '🌍 Muut kielet';
+        otherVoices.forEach(v => {
+          const o = document.createElement('option');
+          o.value = v.name;
+          o.textContent = `${v.name} (${v.lang})`;
+          optgroup.appendChild(o);
+        });
+        sel.appendChild(optgroup);
+      }
+
+      // Restore selection
+      sel.value = currentVal;
+      // If saved voice no longer exists, reset to auto
+      if (!sel.value) sel.value = 'auto';
+    }
+
+    function getSelectedVoice() {
+      // Check manual selection first
+      const manual = getManualVoice();
+      if (manual) return manual;
+
+      // Auto mode: pick based on persona
+      const config = voiceConfigs[state.currentPersona];
+      if (!config || availableVoices.length === 0) return null;
+
+      const finnishVoices = availableVoices.filter(v => v.lang.startsWith('fi'));
+      const fiMale = finnishVoices.filter(v => /male|marko|mika|mies/i.test(v.name));
+      const fiFemale = finnishVoices.filter(v => /female|heidi|nainen|satu|aino|emilia/i.test(v.name));
+
+      const idx = config.voiceIndex;
+
+      // Gender-matched Finnish voice first
+      if (config.gender === 'female' && fiFemale.length > 0) return fiFemale[idx % fiFemale.length];
+      if (config.gender === 'male' && fiMale.length > 0) return fiMale[idx % fiMale.length];
+      if (finnishVoices.length > 0) return finnishVoices[idx % finnishVoices.length];
+
+      // Fallback to English
+      const en = availableVoices.filter(v => v.lang.startsWith('en'));
+      if (en.length > 0) return en[idx % en.length];
+
+      return availableVoices[idx % availableVoices.length];
+    }
+
     function initVoices() {
       const loadVoices = () => {
         availableVoices = speechSynthesis.getVoices();
 
-        // Sort: Finnish voices first, then rest
+        // Sort: Finnish first
         availableVoices.sort((a, b) => {
           if (a.lang.startsWith('fi') && !b.lang.startsWith('fi')) return -1;
           if (!a.lang.startsWith('fi') && b.lang.startsWith('fi')) return 1;
@@ -975,64 +1061,14 @@
           console.log('🇫🇮 Finnish voices:');
           fiV.forEach(v => console.log(`   ${v.name} (${v.lang})`));
         } else {
-          console.log('⚠️ No Finnish voices found — will use other languages');
+          console.log('⚠️ No Finnish voices found');
         }
-        logVoiceAssignments();
+
+        populateVoiceSelect();
       };
 
       loadVoices();
-      // Chrome needs the 'voiceschanged' event
       speechSynthesis.addEventListener('voiceschanged', loadVoices);
-    }
-
-    function getVoiceForPersona(persona) {
-      const config = voiceConfigs[persona];
-      if (!config || availableVoices.length === 0) return null;
-
-      const finnishVoices = availableVoices.filter(v => v.lang.startsWith('fi'));
-      const fiMale = finnishVoices.filter(v => /male|marko|mika|mies/i.test(v.name));
-      const fiFemale = finnishVoices.filter(v => /female|heidi|nainen|satu|aino|emilia/i.test(v.name));
-      const otherVoices = availableVoices.filter(v => !v.lang.startsWith('fi'));
-
-      // Helper: assign voices round-robin so personas share available voices
-      const assignIndex = config.voiceIndex;
-
-      // 1st priority: gender-matched Finnish voice
-      if (config.gender === 'female' && fiFemale.length > 0) {
-        return fiFemale[assignIndex % fiFemale.length];
-      }
-      if (config.gender === 'male' && fiMale.length > 0) {
-        return fiMale[assignIndex % fiMale.length];
-      }
-
-      // 2nd priority: any Finnish voice
-      if (finnishVoices.length > 0) {
-        return finnishVoices[assignIndex % finnishVoices.length];
-      }
-
-      // 3rd priority: English voices, round-robin
-      const en = otherVoices.filter(v => v.lang.startsWith('en'));
-      if (en.length > 0) {
-        return en[assignIndex % en.length];
-      }
-
-      // Last resort: any voice
-      return availableVoices[assignIndex % availableVoices.length];
-    }
-
-    function logVoiceAssignments() {
-      if (availableVoices.length === 0) return;
-      console.log('🎤 Voice assignments (each persona gets a distinct voice):');
-      Object.keys(voiceConfigs).forEach(persona => {
-        const voice = getVoiceForPersona(persona);
-        const config = voiceConfigs[persona];
-        if (voice) {
-          const tag = voice.lang.startsWith('fi') ? '🇫🇮' : '🌍';
-          console.log(`  ${config.name.padEnd(20)} ${tag} ${voice.name} (${voice.lang})  rate:${config.rate} pitch:${config.pitch}`);
-        } else {
-          console.log(`  ${config.name.padEnd(20)} ❌ No voice`);
-        }
-      });
     }
 
     function speakText(text) {
@@ -1040,7 +1076,6 @@
 
       if (state.micOn && recognition) recognition.stop();
 
-      // Cancel any ongoing speech first
       speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
@@ -1051,10 +1086,11 @@
         utterance.rate = config.rate;
         utterance.pitch = config.pitch;
         utterance.volume = config.volume;
-        const voice = getVoiceForPersona(state.currentPersona);
+        const voice = getSelectedVoice();
         if (voice) {
           utterance.voice = voice;
-          console.log(`🗣️ ${config.name} speaks with: ${voice.name} (${voice.lang}) rate:${config.rate} pitch:${config.pitch}`);
+          const isManual = !!getManualVoice();
+          console.log(`🗣️ ${config.name} speaks with: ${voice.name} (${voice.lang}) ${isManual ? '🔧 manuaalinen' : '🤖 auto'} rate:${config.rate} pitch:${config.pitch}`);
         }
       }
 
@@ -1425,6 +1461,27 @@
       }
     });
 
+    // Voice select change
+    elements.voiceSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      localStorage.setItem(STORAGE_KEY_VOICE, val);
+      if (val === 'auto') {
+        showNotification('Ääni: automaattinen (persoan mukaan)', 'info');
+      } else {
+        const voice = availableVoices.find(v => v.name === val);
+        if (voice) {
+          const tag = voice.lang.startsWith('fi') ? '🇫🇮' : '🌍';
+          showNotification(`Ääni valittu: ${tag} ${voice.name}`, 'info');
+        }
+      }
+      // Test the new voice
+      if (state.voiceOn && availableVoices.length > 0) {
+        setTimeout(() => {
+          speakText('Tämä on uusi ääneni. Kuulostatko hyvältä?');
+        }, 500);
+      }
+    });
+
     // Enter to send
     elements.userInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -1443,6 +1500,12 @@
 
       // Restore saved persona
       elements.personaSelect.value = state.currentPersona;
+
+      // Restore saved voice selection (will be populated after voices load)
+      const savedVoice = localStorage.getItem(STORAGE_KEY_VOICE);
+      if (savedVoice && elements.voiceSelect) {
+        elements.voiceSelect.value = savedVoice;
+      }
 
       // Load saved model
       elements.modelSelect.value = getModel();
