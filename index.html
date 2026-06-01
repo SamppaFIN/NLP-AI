@@ -961,40 +961,87 @@
     function initVoices() {
       const loadVoices = () => {
         availableVoices = speechSynthesis.getVoices();
-        console.log('Voices loaded:', availableVoices.length);
+
+        // Sort: Finnish voices first, then rest
+        availableVoices.sort((a, b) => {
+          if (a.lang.startsWith('fi') && !b.lang.startsWith('fi')) return -1;
+          if (!a.lang.startsWith('fi') && b.lang.startsWith('fi')) return 1;
+          return 0;
+        });
+
+        console.log(`🎤 ${availableVoices.length} voices loaded:`);
+        const fiV = availableVoices.filter(v => v.lang.startsWith('fi'));
+        if (fiV.length > 0) {
+          console.log('🇫🇮 Finnish voices:');
+          fiV.forEach(v => console.log(`   ${v.name} (${v.lang})`));
+        } else {
+          console.log('⚠️ No Finnish voices found — will use other languages');
+        }
+        logVoiceAssignments();
       };
 
       loadVoices();
+      // Chrome needs the 'voiceschanged' event
       speechSynthesis.addEventListener('voiceschanged', loadVoices);
     }
 
     function getVoiceForPersona(persona) {
       const config = voiceConfigs[persona];
-      if (!config) return null;
+      if (!config || availableVoices.length === 0) return null;
 
       const finnishVoices = availableVoices.filter(v => v.lang.startsWith('fi'));
-      const fiMale = finnishVoices.filter(v =>
-        v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('marko') || v.name.toLowerCase().includes('mies'));
-      const fiFemale = finnishVoices.filter(v =>
-        v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('heidi') || v.name.toLowerCase().includes('nainen'));
+      const fiMale = finnishVoices.filter(v => /male|marko|mika|mies/i.test(v.name));
+      const fiFemale = finnishVoices.filter(v => /female|heidi|nainen|satu|aino|emilia/i.test(v.name));
+      const otherVoices = availableVoices.filter(v => !v.lang.startsWith('fi'));
 
-      let preferred = null;
-      if (config.gender === 'female' && fiFemale.length > 0) preferred = fiFemale[config.voiceIndex % fiFemale.length];
-      else if (config.gender === 'male' && fiMale.length > 0) preferred = fiMale[config.voiceIndex % fiMale.length];
-      else if (finnishVoices.length > 0) preferred = finnishVoices[config.voiceIndex % finnishVoices.length];
-      else {
-        const en = availableVoices.filter(v => v.lang.startsWith('en'));
-        if (en.length > 0) preferred = en[config.voiceIndex % en.length];
-        else if (availableVoices.length > 0) preferred = availableVoices[config.voiceIndex % availableVoices.length];
+      // Helper: assign voices round-robin so personas share available voices
+      const assignIndex = config.voiceIndex;
+
+      // 1st priority: gender-matched Finnish voice
+      if (config.gender === 'female' && fiFemale.length > 0) {
+        return fiFemale[assignIndex % fiFemale.length];
+      }
+      if (config.gender === 'male' && fiMale.length > 0) {
+        return fiMale[assignIndex % fiMale.length];
       }
 
-      return preferred;
+      // 2nd priority: any Finnish voice
+      if (finnishVoices.length > 0) {
+        return finnishVoices[assignIndex % finnishVoices.length];
+      }
+
+      // 3rd priority: English voices, round-robin
+      const en = otherVoices.filter(v => v.lang.startsWith('en'));
+      if (en.length > 0) {
+        return en[assignIndex % en.length];
+      }
+
+      // Last resort: any voice
+      return availableVoices[assignIndex % availableVoices.length];
+    }
+
+    function logVoiceAssignments() {
+      if (availableVoices.length === 0) return;
+      console.log('🎤 Voice assignments (each persona gets a distinct voice):');
+      Object.keys(voiceConfigs).forEach(persona => {
+        const voice = getVoiceForPersona(persona);
+        const config = voiceConfigs[persona];
+        if (voice) {
+          const tag = voice.lang.startsWith('fi') ? '🇫🇮' : '🌍';
+          console.log(`  ${config.name.padEnd(20)} ${tag} ${voice.name} (${voice.lang})  rate:${config.rate} pitch:${config.pitch}`);
+        } else {
+          console.log(`  ${config.name.padEnd(20)} ❌ No voice`);
+        }
+      });
     }
 
     function speakText(text) {
       if (!state.voiceOn) return;
 
       if (state.micOn && recognition) recognition.stop();
+
+      // Cancel any ongoing speech first
+      speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'fi-FI';
@@ -1005,7 +1052,10 @@
         utterance.pitch = config.pitch;
         utterance.volume = config.volume;
         const voice = getVoiceForPersona(state.currentPersona);
-        if (voice) utterance.voice = voice;
+        if (voice) {
+          utterance.voice = voice;
+          console.log(`🗣️ ${config.name} speaks with: ${voice.name} (${voice.lang}) rate:${config.rate} pitch:${config.pitch}`);
+        }
       }
 
       utterance.onstart = () => setExpression('talking');
@@ -1013,9 +1063,11 @@
         setExpression('empathetic');
         if (state.micOn && recognition) setTimeout(() => recognition.start(), 500);
       };
-      utterance.onerror = () => setExpression('neutral');
+      utterance.onerror = (e) => {
+        console.error('Speech error:', e.error);
+        setExpression('neutral');
+      };
 
-      speechSynthesis.cancel();
       speechSynthesis.speak(utterance);
     }
 
