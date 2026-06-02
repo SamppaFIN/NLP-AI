@@ -214,6 +214,31 @@
     }
     .aurora-btn-ghost:hover { background: rgba(255, 255, 255, 0.1); }
 
+    /* ── Info icon buttons ── */
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.6);
+      font-size: 0.65rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-left: 4px;
+      vertical-align: middle;
+      pointer-events: auto;
+      font-family: 'Inter', sans-serif;
+      line-height: 1;
+    }
+    .info-icon:hover {
+      background: rgba(59,130,246,0.3);
+      border-color: var(--aurora-primary);
+      color: white;
+    }
+
     @keyframes cosmicShimmer {
       0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
@@ -538,7 +563,7 @@
         <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 700px;">
           <div class="aurora-card magnetic-card" style="flex: 1; min-width: 220px;">
             <div class="card-content">
-              <label class="card-label" style="color: rgba(255,255,255,0.7); font-size: 0.8rem; display: block; margin-bottom: 6px;">🧠 AI Persona</label>
+              <label class="card-label" style="color: rgba(255,255,255,0.7); font-size: 0.8rem; display: block; margin-bottom: 6px;">🧠 AI Persona <button class="info-icon" id="personaInfoBtn" title="Miten persoonat vaikuttavat?">?</button></label>
               <select id="personaSelect" class="magnetic-select">
                 <option value="carl_rogers">Carl Rogers — Henkilökeskeinen</option>
                 <option value="freud">Freud — Psykoanalyytikko</option>
@@ -553,7 +578,7 @@
           </div>
           <div class="aurora-card magnetic-card" style="flex: 1; min-width: 220px;">
             <div class="card-content">
-              <label class="card-label" style="color: rgba(255,255,255,0.7); font-size: 0.8rem; display: block; margin-bottom: 6px;">🎤 Ääni</label>
+              <label class="card-label" style="color: rgba(255,255,255,0.7); font-size: 0.8rem; display: block; margin-bottom: 6px;">🎤 Ääni <button class="info-icon" id="voiceInfoBtn" title="Kuinka lisätä ääniä?">?</button></label>
               <select id="voiceSelect" class="magnetic-select">
                 <option value="auto">🤖 Automaattinen (persoonan mukaan)</option>
               </select>
@@ -666,6 +691,56 @@
           ⚠️ API-avaimesi näkyy selaimen kehittäjätyökaluissa (Network-välilehti). Tämä sovellus on tarkoitettu henkilökohtaiseen käyttöön.
         </p>
       </div>
+    </div>
+  </div>
+
+  <!-- ═══ Persona Info Modal ═══ -->
+  <div class="modal-overlay" id="personaInfoModal">
+    <div class="modal-box" style="position: relative; max-width: 600px;">
+      <button class="modal-close" id="closePersonaModal">&times;</button>
+      <h2>🧠 AI Persoonat — Miten ne vaikuttavat vastauksiin?</h2>
+      <p style="margin-bottom: 16px;">Jokainen persona käyttää erilaista <strong>esipromptia</strong> (system prompt), joka ohjaa AI:n vastaustyyliä. Valitse sinulle sopivin terapeuttinen lähestymistapa.</p>
+      <div id="personaInfoContent"></div>
+    </div>
+  </div>
+
+  <!-- ═══ Voice Info Modal ═══ -->
+  <div class="modal-overlay" id="voiceInfoModal">
+    <div class="modal-box" style="position: relative; max-width: 600px;">
+      <button class="modal-close" id="closeVoiceModal">&times;</button>
+      <h2>🎤 Äänet — Kuinka saat lisää ääniä?</h2>
+      <p style="margin-bottom: 16px;">Puhesynteesi käyttää laitteesi sisäänrakennettuja ääniä. Suomiäänet eivät aina ole esiasennettuina — näin lisäät ne.</p>
+
+      <h3>🪟 Windows 11</h3>
+      <ol>
+        <li>Avaa <strong>Asetukset → Aika ja kieli → Puhe</strong></li>
+        <li>Kohdassa <strong>Hallinnoi ääniä</strong> → <strong>Lisää ääniä</strong></li>
+        <li>Valitse suomi → <strong>Microsoft Heidi</strong> (nainen) tai <strong>Microsoft Marko</strong> (mies)</li>
+        <li>Asenna ja käynnistä selain uudelleen</li>
+      </ol>
+
+      <h3>📱 iPhone (iOS)</h3>
+      <ol>
+        <li><strong>Asetukset → Helppokäyttötoiminnot → Puhuttu sisältö → Äänet</strong></li>
+        <li>Valitse <strong>Suomi</strong> → lataa ääni (esim. Satu, Aino, Onni)</li>
+        <li>Safari käyttää tätä ääntä automaattisesti</li>
+      </ol>
+
+      <h3>🤖 Android</h3>
+      <ol>
+        <li>Chrome käyttää <strong>Google Text-to-Speech</strong> -moottoria</li>
+        <li><strong>Asetukset → Järjestelmä → Esteettömyys → Teksti puheeksi</strong></li>
+        <li>Valitse moottori ja suomen kieli (yleensä jo asennettuna)</li>
+      </ol>
+
+      <h3>🌐 Selainten vertailu</h3>
+      <ul>
+        <li>✅ <strong>Chrome / Edge:</strong> Parhaat suomiäänet Windowsilla</li>
+        <li>✅ <strong>Safari (iOS):</strong> Ladattavat suomiäänet</li>
+        <li>⚠️ <strong>Firefox:</strong> Rajattu äänituki, ei aina suomea</li>
+      </ul>
+
+      <p style="margin-top: 12px; font-size: 0.8rem; color: rgba(255,255,255,0.6);">💡 Vinkki: Äänenvalikossa näkyvät vain ne äänet, jotka laitteellesi on asennettu. "Automaattinen" valitsee parhaan äänen persoonan mukaan.</p>
     </div>
   </div>
 
@@ -882,7 +957,9 @@
       voiceControls: $('voiceControls'),
       micBtn: $('micBtn'),
       personaSelect: $('personaSelect'),
+      personaInfoBtn: $('personaInfoBtn'),
       voiceSelect: $('voiceSelect'),
+      voiceInfoBtn: $('voiceInfoBtn'),
       questionCard: $('questionCard'),
       questionText: $('questionText'),
       progressIndicator: $('progressIndicator'),
@@ -907,6 +984,10 @@
       clearApiKeyBtn: $('clearApiKeyBtn'),
       apiKeyStatus: $('apiKeyStatus'),
       modelSelect: $('modelSelect'),
+      personaInfoModal: $('personaInfoModal'),
+      closePersonaModal: $('closePersonaModal'),
+      voiceInfoModal: $('voiceInfoModal'),
+      closeVoiceModal: $('closeVoiceModal'),
       statusBadge: $('statusBadge')
     };
 
@@ -1375,6 +1456,35 @@
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
+    function openPersonaInfo() {
+      // Build persona info from configs
+      const container = document.getElementById('personaInfoContent');
+      if (!container) return;
+      const names = {
+        carl_rogers: 'Carl Rogers — Henkilökeskeinen',
+        freud: 'Freud — Psykoanalyytikko',
+        jung: 'Jung — Analyyttinen',
+        cbt: 'CBT — Kognitiivinen',
+        gestalt: 'Gestalt — Kokemuksellinen',
+        existential: 'Eksistentiaalinen',
+        virginia_satir: 'Virginia Satir — Perheterapeutti',
+        marsha_linehan: 'Marsha Linehan — DBT-terapeutti'
+      };
+      let html = '';
+      Object.keys(personaPrompts).forEach(key => {
+        const config = voiceConfigs[key];
+        const gender = config?.gender === 'female' ? '🔵 Naisääni' : '🟢 Miesääni';
+        const ratePitch = config ? ` (puhenopeus: ${config.rate}, korkeus: ${config.pitch})` : '';
+        html += `<div style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 3px solid var(--aurora-primary);">
+          <h3 style="margin:0 0 4px 0;">${names[key] || key}</h3>
+          <p style="font-size:0.8rem; color:rgba(255,255,255,0.5); margin:0 0 8px 0;">${gender}${ratePitch}</p>
+          <p style="font-size:0.82rem; color:rgba(255,255,255,0.8); margin:0; font-family: monospace;">📝 ${personaPrompts[key]}</p>
+        </div>`;
+      });
+      container.innerHTML = html;
+      openModal('personaInfoModal');
+    }
+
     function openSettings() {
       elements.apiKeyInput.value = getApiKey();
       elements.modelSelect.value = getModel();
@@ -1435,6 +1545,20 @@
     elements.closeNlpModal.addEventListener('click', () => closeModal('nlpInfoModal'));
     elements.nlpInfoModal.addEventListener('click', (e) => {
       if (e.target === elements.nlpInfoModal) closeModal('nlpInfoModal');
+    });
+
+    // Persona Info modal
+    elements.personaInfoBtn.addEventListener('click', openPersonaInfo);
+    elements.closePersonaModal.addEventListener('click', () => closeModal('personaInfoModal'));
+    elements.personaInfoModal.addEventListener('click', (e) => {
+      if (e.target === elements.personaInfoModal) closeModal('personaInfoModal');
+    });
+
+    // Voice Info modal
+    elements.voiceInfoBtn.addEventListener('click', () => openModal('voiceInfoModal'));
+    elements.closeVoiceModal.addEventListener('click', () => closeModal('voiceInfoModal'));
+    elements.voiceInfoModal.addEventListener('click', (e) => {
+      if (e.target === elements.voiceInfoModal) closeModal('voiceInfoModal');
     });
 
     // Voice test
